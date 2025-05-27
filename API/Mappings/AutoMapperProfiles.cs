@@ -10,17 +10,20 @@ namespace API.Mappings
         public AutoMapperProfiles()
         {
             CreateMap<ApplicationUser, UserDto>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName));
-
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.UserName)).ReverseMap();
             CreateMap<Comment, CommentDto>()
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.ApplicationUserId))
-                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.ApplicationUser.UserName))
-                .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => $"{src.ApplicationUser.Firstname} {src.ApplicationUser.Lastname}"));
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
+            CreateMap<CreateCommentDto, Comment>().ReverseMap();
+            CreateMap<UpdateCommentDto, Comment>().ReverseMap();
+
+
 
             CreateMap<BlogPost, BlogPostDto>()
-    .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser));
+    .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.ApplicationUser)).ReverseMap();
             CreateMap<CreateBlogPostDto, BlogPost>().ReverseMap();
             CreateMap<UpdateBlogPostDto, BlogPost>().ReverseMap();
+
+
 
         }
 

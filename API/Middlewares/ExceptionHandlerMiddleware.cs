@@ -23,8 +23,7 @@ namespace API.Middlewares
             catch (Exception ex)
             {
                 var errorId = Guid.NewGuid();
-                logger.LogError(ex, ex.Message);
-
+                logger.LogError(ex, "ErrorId: {ErrorId} - {Message}", errorId, ex.Message);
 
                 httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 httpContext.Response.ContentType = "application/json";
@@ -35,8 +34,8 @@ namespace API.Middlewares
                     ErrorMessage = "Something went wrong"
                 };
                 await httpContext.Response.WriteAsJsonAsync(error);
-
             }
+
         }
     }
 }

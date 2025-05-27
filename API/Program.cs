@@ -19,10 +19,24 @@ var logger = new LoggerConfiguration()
     .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost5173",
+        policy => policy.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
+
+
+
+
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
@@ -37,6 +51,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
          IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
      }
     );
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Reader", policy => policy.RequireRole("Reader"));
+    options.AddPolicy("Writer", policy => policy.RequireRole("Writer"));
+});
+
+
+
+
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -85,6 +110,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseHttpsRedirection();
 
+
+app.UseCors("AllowLocalhost5173");
 app.UseAuthentication();
 app.UseAuthorization();
 

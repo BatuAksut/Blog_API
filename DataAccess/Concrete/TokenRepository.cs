@@ -1,4 +1,5 @@
 ﻿using DataAccess.Abstract;
+using Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -20,10 +21,13 @@ namespace DataAccess.Concrete
         {
             this.configuration = configuration;
         }
-        public string CreateJWTToken(IdentityUser user, List<string> roles)
+        public string CreateJWTToken(ApplicationUser user, List<string> roles)
         {
-            var claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) 
+    };
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));

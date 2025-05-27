@@ -44,18 +44,21 @@ namespace DataAccess.Concrete
         }
 
         public async Task<List<BlogPost>> GetAllAsync(
-            string? filterOn = null,
-            string? filterQuery = null,
-            string? sortBy = null,
-            bool isAscending = true,
-            int pageNumber = 1,
-            int pageSize = 1000)
+    string? filterOn = null,
+    string? filterQuery = null,
+    string? sortBy = null,
+    bool isAscending = true,
+    int pageNumber = 1,
+    int pageSize = 20)
         {
+            // Maksimum pageSize sınırı koyduk
+            pageSize = Math.Min(pageSize, 100);
+
             var blogPosts = context.BlogPosts
-        .Include(x => x.ApplicationUser) 
-        .Include(x => x.Comments)        
-            .ThenInclude(c => c.ApplicationUser) 
-        .AsQueryable();
+                .Include(x => x.ApplicationUser)
+                .Include(x => x.Comments)
+                    .ThenInclude(c => c.ApplicationUser)
+                .AsQueryable();
 
             // Filtering
             if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
@@ -68,10 +71,8 @@ namespace DataAccess.Concrete
                     case "content":
                         blogPosts = blogPosts.Where(x => x.Content.Contains(filterQuery));
                         break;
-                        
                 }
             }
-
 
             // Sorting
             if (!string.IsNullOrWhiteSpace(sortBy))
@@ -87,7 +88,6 @@ namespace DataAccess.Concrete
             var skipResults = (pageNumber - 1) * pageSize;
             return await blogPosts.Skip(skipResults).Take(pageSize).ToListAsync();
         }
-
         public async Task<BlogPost?> GetByIdAsync(Guid id)
         {
             return await context.BlogPosts
@@ -102,12 +102,18 @@ namespace DataAccess.Concrete
             var blogPostToUpdate = await context.BlogPosts.FirstOrDefaultAsync(x => x.Id == id);
             if (blogPostToUpdate == null) return null;
 
+            // Kullanıcı gerçekten var mı kontrolü
+            var userExists = await context.Users.AnyAsync(x => x.Id == blogPost.ApplicationUserId);
+            if (!userExists)
+                throw new Exception("ApplicationUser does not exist.");
+
             blogPostToUpdate.Title = blogPost.Title;
             blogPostToUpdate.Content = blogPost.Content;
             blogPostToUpdate.ApplicationUserId = blogPost.ApplicationUserId;
 
-
+            context.BlogPosts.Update(blogPostToUpdate);
             await context.SaveChangesAsync();
+
             return blogPostToUpdate;
         }
     }

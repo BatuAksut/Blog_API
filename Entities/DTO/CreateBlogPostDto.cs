@@ -15,8 +15,7 @@ namespace Entities.DTO
         [Required]
         public string Content { get; set; }
 
-        [Required]
-        public Guid ApplicationUserId { get; set; }
+
     }
 
 }

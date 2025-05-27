@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 
 namespace Entities.DTO
 {
-    public class UpdateBlogPostDto
+    public class UpdateCommentDto
     {
-        [Required]
-        public string Title { get; set; }
-
         [Required]
         public string Content { get; set; }
 
-    }
+        [Required]
+        public Guid BlogPostId { get; set; }
 
+    }
 }

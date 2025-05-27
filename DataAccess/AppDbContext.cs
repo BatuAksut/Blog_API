@@ -69,22 +69,22 @@ namespace DataAccess
                 .HasForeignKey(c => c.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            var roles = new List<IdentityRole>()
-            {
-                new IdentityRole()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Reader",
-                    NormalizedName = "READER"
-                },
-                new IdentityRole()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Writer",
-                    NormalizedName = "WRITER"
-                }
-            };
-            modelBuilder.Entity<IdentityRole>().HasData(roles);
+            var roles = new List<IdentityRole<Guid>>()
+{
+    new IdentityRole<Guid>()
+    {
+        Id = Guid.NewGuid(),
+        Name = "Reader",
+        NormalizedName = "READER"
+    },
+    new IdentityRole<Guid>()
+    {
+        Id = Guid.NewGuid(),
+        Name = "Writer",
+        NormalizedName = "WRITER"
+    }
+};
+            modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
 
 
 

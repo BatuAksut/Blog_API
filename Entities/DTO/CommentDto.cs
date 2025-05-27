@@ -11,12 +11,9 @@ namespace Entities.DTO
     {
         public Guid Id { get; set; }
         public string Content { get; set; }
-
         public Guid BlogPostId { get; set; }
 
-        public Guid UserId { get; set; }
-        public string Username { get; set; }
-        public string Fullname { get; set; }
-
+        public UserDto User { get; set; } 
     }
+
 }

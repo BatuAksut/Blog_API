@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Entities;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace DataAccess.Abstract
 {
     public interface ITokenRepository
     {
-        string CreateJWTToken(IdentityUser user, List<string> roles);
+        string CreateJWTToken(ApplicationUser user, List<string> roles);
     }
 }
