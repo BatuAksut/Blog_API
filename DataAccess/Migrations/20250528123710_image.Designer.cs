@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250528123710_image")]
+    partial class image
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,7 +103,7 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2aa6b5f3-4ffc-4a7e-9541-09f41bf9dd6e",
+                            ConcurrencyStamp = "84041444-f235-44f4-831f-3a3ec7dca778",
                             Email = "reader1@example.com",
                             EmailConfirmed = true,
                             Firstname = "Reader",
@@ -108,7 +111,7 @@ namespace DataAccess.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "READER1@EXAMPLE.COM",
                             NormalizedUserName = "READER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAW5YOCztDZc9B9AYLrI68Q/PbfguPQRvP8htibuHdP+SFZsqoquvdGx3xjIcP2meQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEI4gNBWPhZentYeumlTswDerb94cZM0B7/vqwBJrihU58N/QUunW5ceEvK2oc/W0dQ==",
                             PhoneNumberConfirmed = false,
                             TwoFactorEnabled = false,
                             UserName = "reader1"
@@ -117,7 +120,7 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ec63d153-10f4-468a-a30e-49d4bd14d0f4",
+                            ConcurrencyStamp = "b9969ec4-d208-498d-8940-ee76ceda3e3b",
                             Email = "writer1@example.com",
                             EmailConfirmed = true,
                             Firstname = "Writer",
@@ -125,7 +128,7 @@ namespace DataAccess.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "WRITER1@EXAMPLE.COM",
                             NormalizedUserName = "WRITER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN7IJFK9PlRavph8Y2Xwd+bfdVikpBssPa8MjnAydogIntWdnBL1X53G12uHuPFkDw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKeLFKoQF4Y4Uo6LFq0IvQxonh5SNTKhdmkab7yom6oUG+I1IClDMon49V4hXNhhdg==",
                             PhoneNumberConfirmed = false,
                             TwoFactorEnabled = false,
                             UserName = "writer1"
@@ -164,18 +167,18 @@ namespace DataAccess.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
+                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Content = "This is the content of the first blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3651),
+                            CreatedAt = new DateTime(2025, 5, 28, 12, 37, 10, 286, DateTimeKind.Utc).AddTicks(6255),
                             Title = "First Blog Post"
                         },
                         new
                         {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
+                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Content = "This is the content of the second blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3656),
+                            CreatedAt = new DateTime(2025, 5, 28, 12, 37, 10, 286, DateTimeKind.Utc).AddTicks(6261),
                             Title = "Second Blog Post"
                         });
                 });
@@ -210,19 +213,19 @@ namespace DataAccess.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
+                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            BlogPostId = new Guid("44444444-4444-4444-4444-444444444444"),
+                            BlogPostId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Content = "This is a comment on the first blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3680)
+                            CreatedAt = new DateTime(2025, 5, 28, 12, 37, 10, 286, DateTimeKind.Utc).AddTicks(6292)
                         },
                         new
                         {
-                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
+                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000002"),
-                            BlogPostId = new Guid("55555555-5555-5555-5555-555555555555"),
+                            BlogPostId = new Guid("22222222-2222-2222-2222-222222222222"),
                             Content = "This is a comment on the second blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3689)
+                            CreatedAt = new DateTime(2025, 5, 28, 12, 37, 10, 286, DateTimeKind.Utc).AddTicks(6303)
                         });
                 });
 
@@ -256,21 +259,15 @@ namespace DataAccess.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Id = new Guid("e06a728f-77d7-4852-87e8-d5645758c93a"),
                             Name = "Reader",
                             NormalizedName = "READER"
                         },
                         new
                         {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            Id = new Guid("61f3f94a-4883-4047-8ddd-cf6c8aa5e15d"),
                             Name = "Writer",
                             NormalizedName = "WRITER"
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
                         });
                 });
 
@@ -399,7 +396,7 @@ namespace DataAccess.Migrations
                     b.HasOne("Entities.BlogPost", "BlogPost")
                         .WithMany("Comments")
                         .HasForeignKey("BlogPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");

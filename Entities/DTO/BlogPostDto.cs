@@ -13,5 +13,6 @@ namespace Entities.DTO
         public string Content { get; set; }
         public UserDto User { get; set; }
         public List<CommentDto> Comments { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

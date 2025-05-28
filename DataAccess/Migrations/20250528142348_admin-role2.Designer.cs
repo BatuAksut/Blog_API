@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250528142348_admin-role2")]
+    partial class adminrole2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,7 +103,7 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "2aa6b5f3-4ffc-4a7e-9541-09f41bf9dd6e",
+                            ConcurrencyStamp = "2cf9f6dd-6bf8-467f-9dac-80acddedc1f0",
                             Email = "reader1@example.com",
                             EmailConfirmed = true,
                             Firstname = "Reader",
@@ -108,7 +111,7 @@ namespace DataAccess.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "READER1@EXAMPLE.COM",
                             NormalizedUserName = "READER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAW5YOCztDZc9B9AYLrI68Q/PbfguPQRvP8htibuHdP+SFZsqoquvdGx3xjIcP2meQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEKzdQPTxLkwwwHnMUz/NlnOmCEUIjSUAh68YrB1/l3Ye5EZwuJkC26RibggpAVZjKQ==",
                             PhoneNumberConfirmed = false,
                             TwoFactorEnabled = false,
                             UserName = "reader1"
@@ -117,7 +120,7 @@ namespace DataAccess.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "ec63d153-10f4-468a-a30e-49d4bd14d0f4",
+                            ConcurrencyStamp = "74b67e0b-0526-4cdd-a847-d7fef7b0464d",
                             Email = "writer1@example.com",
                             EmailConfirmed = true,
                             Firstname = "Writer",
@@ -125,7 +128,7 @@ namespace DataAccess.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "WRITER1@EXAMPLE.COM",
                             NormalizedUserName = "WRITER1",
-                            PasswordHash = "AQAAAAIAAYagAAAAEN7IJFK9PlRavph8Y2Xwd+bfdVikpBssPa8MjnAydogIntWdnBL1X53G12uHuPFkDw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFFODaXVxVsWK+mUM0cBeEBEEOzz429z65RLDfyB9gP6u/dbu+dq6wRMjLTAowdE9A==",
                             PhoneNumberConfirmed = false,
                             TwoFactorEnabled = false,
                             UserName = "writer1"
@@ -167,7 +170,7 @@ namespace DataAccess.Migrations
                             Id = new Guid("44444444-4444-4444-4444-444444444444"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Content = "This is the content of the first blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3651),
+                            CreatedAt = new DateTime(2025, 5, 28, 14, 23, 47, 956, DateTimeKind.Utc).AddTicks(4283),
                             Title = "First Blog Post"
                         },
                         new
@@ -175,7 +178,7 @@ namespace DataAccess.Migrations
                             Id = new Guid("55555555-5555-5555-5555-555555555555"),
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000001"),
                             Content = "This is the content of the second blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3656),
+                            CreatedAt = new DateTime(2025, 5, 28, 14, 23, 47, 956, DateTimeKind.Utc).AddTicks(4292),
                             Title = "Second Blog Post"
                         });
                 });
@@ -214,7 +217,7 @@ namespace DataAccess.Migrations
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000002"),
                             BlogPostId = new Guid("44444444-4444-4444-4444-444444444444"),
                             Content = "This is a comment on the first blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3680)
+                            CreatedAt = new DateTime(2025, 5, 28, 14, 23, 47, 956, DateTimeKind.Utc).AddTicks(4323)
                         },
                         new
                         {
@@ -222,7 +225,7 @@ namespace DataAccess.Migrations
                             ApplicationUserId = new Guid("00000000-0000-0000-0000-000000000002"),
                             BlogPostId = new Guid("55555555-5555-5555-5555-555555555555"),
                             Content = "This is a comment on the second blog post.",
-                            CreatedAt = new DateTime(2025, 5, 28, 14, 34, 21, 727, DateTimeKind.Utc).AddTicks(3689)
+                            CreatedAt = new DateTime(2025, 5, 28, 14, 23, 47, 956, DateTimeKind.Utc).AddTicks(4334)
                         });
                 });
 
@@ -399,7 +402,7 @@ namespace DataAccess.Migrations
                     b.HasOne("Entities.BlogPost", "BlogPost")
                         .WithMany("Comments")
                         .HasForeignKey("BlogPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("ApplicationUser");

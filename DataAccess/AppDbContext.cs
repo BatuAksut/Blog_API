@@ -14,7 +14,6 @@ namespace DataAccess
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<Comment> Comments { get; set; }
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -33,7 +32,7 @@ namespace DataAccess
                     EmailConfirmed = true,
                     Firstname = "Reader",
                     Lastname = "One",
-                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null, "YourPassword123!") // Hash kullan
+                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null, "YourPassword123!")
                 },
                 new ApplicationUser
                 {
@@ -49,9 +48,6 @@ namespace DataAccess
                 }
             );
 
-
-
-
             modelBuilder.Entity<BlogPost>()
                 .HasOne(b => b.ApplicationUser)
                 .WithMany(u => u.BlogPosts)
@@ -61,7 +57,7 @@ namespace DataAccess
                 .HasOne(c => c.BlogPost)
                 .WithMany(b => b.Comments)
                 .HasForeignKey(c => c.BlogPostId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Comment>()
                 .HasOne(c => c.ApplicationUser)
@@ -69,27 +65,37 @@ namespace DataAccess
                 .HasForeignKey(c => c.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Sabit GUID'lerle roller
+            var readerRoleId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var writerRoleId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var adminRoleId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
             var roles = new List<IdentityRole<Guid>>()
-{
-    new IdentityRole<Guid>()
-    {
-        Id = Guid.NewGuid(),
-        Name = "Reader",
-        NormalizedName = "READER"
-    },
-    new IdentityRole<Guid>()
-    {
-        Id = Guid.NewGuid(),
-        Name = "Writer",
-        NormalizedName = "WRITER"
-    }
-};
+            {
+                new IdentityRole<Guid>()
+                {
+                    Id = readerRoleId,
+                    Name = "Reader",
+                    NormalizedName = "READER"
+                },
+                new IdentityRole<Guid>()
+                {
+                    Id = writerRoleId,
+                    Name = "Writer",
+                    NormalizedName = "WRITER"
+                },
+                new IdentityRole<Guid>()
+                {
+                    Id = adminRoleId,
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                }
+            };
+
             modelBuilder.Entity<IdentityRole<Guid>>().HasData(roles);
 
-
-
-            var blogPost1Id = Guid.Parse("11111111-1111-1111-1111-111111111111");
-            var blogPost2Id = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var blogPost1Id = Guid.Parse("44444444-4444-4444-4444-444444444444");
+            var blogPost2Id = Guid.Parse("55555555-5555-5555-5555-555555555555");
 
             modelBuilder.Entity<BlogPost>().HasData(
                 new BlogPost
@@ -109,25 +115,21 @@ namespace DataAccess
             );
 
             modelBuilder.Entity<Comment>().HasData(
-    new Comment
-    {
-        Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
-        Content = "This is a comment on the first blog post.",
-        BlogPostId = blogPost1Id,
-        ApplicationUserId = user2Id
-    },
-    new Comment
-    {
-        Id = Guid.Parse("44444444-4444-4444-4444-444444444444"),
-        Content = "This is a comment on the second blog post.",
-        BlogPostId = blogPost2Id,
-        ApplicationUserId = user2Id
-    }
-);
-
+                new Comment
+                {
+                    Id = Guid.Parse("66666666-6666-6666-6666-666666666666"),
+                    Content = "This is a comment on the first blog post.",
+                    BlogPostId = blogPost1Id,
+                    ApplicationUserId = user2Id
+                },
+                new Comment
+                {
+                    Id = Guid.Parse("77777777-7777-7777-7777-777777777777"),
+                    Content = "This is a comment on the second blog post.",
+                    BlogPostId = blogPost2Id,
+                    ApplicationUserId = user2Id
+                }
+            );
         }
-
-
     }
-
 }

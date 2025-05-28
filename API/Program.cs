@@ -56,6 +56,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Reader", policy => policy.RequireRole("Reader"));
     options.AddPolicy("Writer", policy => policy.RequireRole("Writer"));
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
 });
 
 
@@ -107,9 +108,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 
 app.UseCors("AllowLocalhost5173");
 app.UseAuthentication();

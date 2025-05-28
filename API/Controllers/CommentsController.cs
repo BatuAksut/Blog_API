@@ -27,7 +27,7 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Reader,Writer")]
+        [Authorize(Roles = "Reader,Writer,Admin")]
         public async Task<IActionResult> GetComments(
     [FromQuery] string? filterOn,
     [FromQuery] string? filterQuery,
@@ -50,7 +50,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Reader,Writer")]
+        [Authorize(Roles = "Reader,Writer,Admin")]
         public async Task<IActionResult> GetComment(Guid id)
         {
             var comment = await repository.GetByIdAsync(id);
@@ -61,7 +61,7 @@ namespace API.Controllers
 
         [HttpPost]
         [ValidateModel]
-        [Authorize(Roles = "Writer")]
+        [Authorize(Roles = "Writer,Admin")]
         public async Task<IActionResult> CreateComment([FromBody] CreateCommentDto createCommentDto)
         {
             if (createCommentDto == null) return BadRequest("Comment is null");
@@ -77,7 +77,7 @@ namespace API.Controllers
 
         [HttpPut("{id}")]
         [ValidateModel]
-        [Authorize(Roles = "Writer")]
+        [Authorize(Roles = "Writer,Admin")]
         public async Task<IActionResult> UpdateComment(Guid id, [FromBody] UpdateCommentDto updateCommentDto)
         {
             if (updateCommentDto == null)
@@ -106,7 +106,7 @@ namespace API.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize] 
+        [Authorize(Roles = "Writer,Admin")]
         public async Task<IActionResult> DeleteComment(Guid id)
         {
             var userId = User.GetUserId();
@@ -115,7 +115,7 @@ namespace API.Controllers
             if (comment == null)
                 return NotFound("Comment is null");
 
-            if (comment.ApplicationUserId != userId)
+            if (!User.IsInRole("Admin") && comment.ApplicationUserId != userId)
                 return StatusCode(StatusCodes.Status403Forbidden, "Unauthorized");
 
             await repository.DeleteAsync(comment.Id);
@@ -123,7 +123,7 @@ namespace API.Controllers
         }
 
         [HttpGet("byblogpost/{blogPostId}")]
-        [Authorize(Roles ="Reader,Writer")]
+        [Authorize(Roles ="Reader,Writer,Admin")]
         public async Task<IActionResult> GetCommentsByBlogPostId(Guid blogPostId)
         {
             var comments = await repository.GetByBlogPostIdAsync(blogPostId);

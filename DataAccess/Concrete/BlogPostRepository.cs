@@ -26,6 +26,8 @@ namespace DataAccess.Concrete
                 Title = blogPost.Title,
                 Content = blogPost.Content,
                 ApplicationUserId = blogPost.ApplicationUserId,
+                ImageUrl=blogPost.ImageUrl
+
             };
 
             await context.BlogPosts.AddAsync(newBlogPost);
@@ -110,6 +112,7 @@ namespace DataAccess.Concrete
             blogPostToUpdate.Title = blogPost.Title;
             blogPostToUpdate.Content = blogPost.Content;
             blogPostToUpdate.ApplicationUserId = blogPost.ApplicationUserId;
+            blogPostToUpdate.ImageUrl = blogPost.ImageUrl ?? blogPostToUpdate.ImageUrl;
 
             context.BlogPosts.Update(blogPostToUpdate);
             await context.SaveChangesAsync();

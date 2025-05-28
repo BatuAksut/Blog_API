@@ -24,11 +24,16 @@ namespace DataAccess.Concrete
                 BlogPostId = comment.BlogPostId,
                 Content = comment.Content,
                 ApplicationUserId = comment.ApplicationUserId,
+                CreatedAt=comment.CreatedAt
             };
 
             await context.Comments.AddAsync(commentToAdd);
             await context.SaveChangesAsync();
-            return commentToAdd;
+
+            return await context.Comments
+                .Include(c => c.ApplicationUser)
+                .Include(c => c.BlogPost)
+                .FirstOrDefaultAsync(c => c.Id == commentToAdd.Id);
         }
 
         public async Task<Comment?> DeleteAsync(Guid id)

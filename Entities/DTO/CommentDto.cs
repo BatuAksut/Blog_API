@@ -13,7 +13,9 @@ namespace Entities.DTO
         public string Content { get; set; }
         public Guid BlogPostId { get; set; }
 
-        public UserDto User { get; set; } 
+        public UserDto User { get; set; }
+
+        public DateTime CreatedAt { get; set; }
     }
 
 }
