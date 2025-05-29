@@ -26,7 +26,9 @@ namespace DataAccess.Concrete
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Email, user.Email),
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) 
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
+        new Claim("firstname", user.Firstname),
+        new Claim("lastname", user.Lastname)
     };
             foreach (var role in roles)
             {
