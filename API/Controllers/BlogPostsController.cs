@@ -26,7 +26,7 @@ namespace API.Controllers
                 this.memoryCache = memoryCache;
             }
         [HttpGet]
-        [Authorize(Roles = "Reader,Writer,Admin")]
+        //[Authorize(Roles = "Reader,Writer,Admin")]
         public async Task<IActionResult> GetBlogPosts(
 [FromQuery] string? filterOn,
 [FromQuery] string? filterQuery,
@@ -48,7 +48,7 @@ namespace API.Controllers
             return Ok(blogPostsDto);
         }
         [HttpGet("{id}")]
-            [Authorize(Roles = "Reader,Writer,Admin")]
+            
             public async Task<IActionResult> GetBlogPost(Guid id)
             {
                 var blogPost = await repository.GetByIdAsync(id);
