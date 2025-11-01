@@ -10,7 +10,7 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 - ⚡ Filtering, Sorting, and Pagination
 - 🛡️ Secure API Endpoints with ASP.NET Identity
 
----
+<!-- TODO: instructions on how to run the software? How to test, build, etc. -->
 
 ## 🚀 Tech Stack
 
@@ -28,13 +28,19 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 
 ## 📦 Features
 
+<!-- FIXME: Authentication & Authorization are not features.
+Features are what you provide with your software. You could have created a section for this.
+Where you can also detail the section "🔒 Role Policies" -->
+
 ### 🔐 Authentication & Authorization
+
 - Register with roles
 - Login and receive JWT
 - Secure endpoints with role-based access (`[Authorize(Roles = "...")]`)
 - Identity password configuration customized for simplicity
 
 ### 📰 Blog Management
+
 - **Create** a blog post with optional image upload
 - **Get** all posts with:
   - Filtering (`filterOn`, `filterQuery`)
@@ -46,6 +52,8 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 ---
 
 ### 🛠 Sample Endpoints
+
+<!-- FIXME: providing the URL of the Swagger could have been better. -->
 
 | Endpoint                               | Method | Auth         | Description                      |
 |----------------------------------------|--------|--------------|----------------------------------|
