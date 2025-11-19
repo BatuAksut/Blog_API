@@ -27,7 +27,6 @@ namespace DataAccess.Concrete
         Content = blogPost.Content,
         ApplicationUserId = blogPost.ApplicationUserId,
         ImageUrl = blogPost.ImageUrl
-
       };
 
       await context.BlogPosts.AddAsync(newBlogPost);
@@ -103,13 +102,13 @@ int pageSize = 20)
     public async Task<BlogPost?> UpdateAsync(Guid id, BlogPost blogPost)
     {
       var blogPostToUpdate = await context.BlogPosts.FirstOrDefaultAsync(x => x.Id == id);
-      if (blogPostToUpdate == null) return null;
+            if (blogPostToUpdate == null)
+            {
+                return null;
+            }
 
-      // Kullanıcı gerçekten var mı kontrolü
-      // FIXME: this check can be done before. You're only allowed to edit your own blog posts, isn't it?
-      var userExists = await context.Users.AnyAsync(x => x.Id == blogPost.ApplicationUserId);
-      if (!userExists)
-        throw new Exception("ApplicationUser does not exist.");
+     
+     
 
       blogPostToUpdate.Title = blogPost.Title;
       blogPostToUpdate.Content = blogPost.Content;

@@ -70,7 +70,9 @@ namespace API.Controllers
     public async Task<IActionResult> GetBlogPost(Guid id)
     {
       var blogPost = await repository.GetByIdAsync(id);
-      if (blogPost == null) return NotFound();
+      if (blogPost == null){
+                return NotFound();
+            }
       var blogPostDto = mapper.Map<BlogPostDto>(blogPost);
       return Ok(blogPostDto);
     }
@@ -94,8 +96,9 @@ namespace API.Controllers
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateBlogPost([FromForm] CreateBlogPostDto dto)
     {
-      // [Q]: did you skip error handling because if you're here it means the user is authenticated, correct?
-      var userId = User.GetUserId();
+            // [Q]: did you skip error handling because if you're here it means the user is authenticated, correct?
+            // [A]: Yes, the [Authorize] attribute ensures that only authenticated users with the specified roles can access this endpoint.
+            var userId = User.GetUserId();
 
       var blogPost = new BlogPost
       {
@@ -106,10 +109,8 @@ namespace API.Controllers
 
       if (dto.Image != null && dto.Image.Length > 0)
       {
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-        // FIXME: always put curly braces because it's error-prone.
-        if (!Directory.Exists(uploadsFolder))
-          Directory.CreateDirectory(uploadsFolder);
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
+          
 
         var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
         var filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -123,7 +124,6 @@ namespace API.Controllers
       }
 
       var created = await repository.CreateAsync(blogPost);
-
       var createdDto = mapper.Map<BlogPostDto>(created);
       return CreatedAtAction(nameof(GetBlogPost), new { id = created.Id }, createdDto);
     }
@@ -145,24 +145,34 @@ namespace API.Controllers
     public async Task<IActionResult> UpdateBlogPost(Guid id, [FromBody] UpdateBlogPostDto updateBlogPostDto)
     {
       if (updateBlogPostDto == null)
-        return BadRequest("Blog Post is null");
+            {
+                return BadRequest("Blog Post is null");
+
+            }
 
       var existingBlogPost = await repository.GetByIdAsync(id);
       if (existingBlogPost == null)
-        return NotFound();
+            {
+                return NotFound();
+            }
+        
 
       var userId = User.GetUserId();
 
       if (existingBlogPost.ApplicationUserId != userId)
-        // FIXME: you can be more explicit and say "action not allowed. You can add only your blog posts."
-        return StatusCode(StatusCodes.Status403Forbidden, "Unauthorized.");
+                // FIXME: you can be more explicit and say "action not allowed. You can add only your blog posts."
+                // fixed below
+      return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to update this post. You can only edit your own posts.");
 
       var blogPost = mapper.Map<BlogPost>(updateBlogPostDto);
       blogPost.ApplicationUserId = userId;
 
       var updatedBlogPost = await repository.UpdateAsync(id, blogPost);
       if (updatedBlogPost == null)
-        return NotFound();
+            {
+                return NotFound("Blog post could not be found during update.");
+            }
+       
 
       var updatedBlogPostDto = mapper.Map<BlogPostDto>(updatedBlogPost);
       return Ok(updatedBlogPostDto);
@@ -185,12 +195,17 @@ namespace API.Controllers
       var blogPost = await repository.GetByIdAsync(id);
 
       if (blogPost == null)
-        // FIXME: "resource does not exist" => it can be the generic way of saying this.
-        return NotFound("Blog is null");
+            {
+                return NotFound("Resource does not exist");
+            }
+          
+             
 
       if (!User.IsInRole("Admin") && blogPost.ApplicationUserId != userId)
-        // FIXME: same as before
-        return StatusCode(StatusCodes.Status403Forbidden, "Unauthorized.");
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to delete this post. You can only delete your own posts.");
+            }
+      
 
       await repository.DeleteAsync(blogPost.Id);
       return NoContent();
@@ -218,22 +233,32 @@ namespace API.Controllers
     {
       var blogPost = await repository.GetByIdAsync(id);
       if (blogPost == null)
-        return NotFound("Blog post not found.");
+            {
+                return NotFound("Blog post not found.");
+            }
 
       // FIXME: this check can be enforced in a couple of ways (which I believe are better):
       // 1. add this in a filter decorating the controller
       // 2. add this as a fixed condition in all the queries/commands you're performing
+
+      // TODO
       var userId = User.GetUserId();
-      if (blogPost.ApplicationUserId != userId)
-        return StatusCode(StatusCodes.Status403Forbidden, "Unauthorized.");
+      if (blogPost.ApplicationUserId != userId && !User.IsInRole("Admin"))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, "You can only upload images to your own posts..");
+
+            }
 
       if (imageFile == null || imageFile.Length == 0)
-        return BadRequest("No image file uploaded.");
+            {
+                 return BadRequest("No image file uploaded.");
+            }
 
       // FIXME: this check can be performed on the startup of the program, not on every call
+      // fixed
       var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-      if (!Directory.Exists(uploadsFolder))
-        Directory.CreateDirectory(uploadsFolder);
+   
+       
 
       var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
       var filePath = Path.Combine(uploadsFolder, uniqueFileName);
