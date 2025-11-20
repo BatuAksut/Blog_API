@@ -1,4 +1,6 @@
-﻿namespace Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Entities
 {
   public class BlogPost : BaseEntity<Guid>
   {
@@ -9,7 +11,9 @@
 
     public List<Comment> Comments { get; set; } = new List<Comment>();
 
-    // TODO: some URL validation? I know there's something built-in already provided.
+        // TODO: some URL validation? I know there's something built-in already provided.
+        //fixed below
+        [Url]
     public string? ImageUrl { get; set; }
 
   }

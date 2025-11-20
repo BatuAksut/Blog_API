@@ -24,19 +24,20 @@ namespace DataAccess.Concrete
     public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
       // FIXME: warnings & expressions that can be simplified.
+      // fixed warnings but could not simplify expressions
       var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Email, user.Email!),
         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
-        new Claim("firstname", user.Firstname),
-        new Claim("lastname", user.Lastname)
+        new Claim("firstname", user.Firstname ?? string.Empty),
+        new Claim("lastname", user.Lastname ?? string.Empty)
     };
       foreach (var role in roles)
       {
         claims.Add(new Claim(ClaimTypes.Role, role));
       }
 
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
+      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
 
       var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
       var token = new JwtSecurityToken(
