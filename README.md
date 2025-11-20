@@ -23,31 +23,58 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 - **Serilog (Logging)**
 - **In-Memory Caching**
 - **Swagger (API documentation)**
+---
+### Prerequisites
+- [.NET 8 SDK](https://dotnet.microsoft.com/download)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (LocalDB or Docker)
+- A code editor (Visual Studio 2022 or VS Code)
+
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/BatuAksut/Blog_API.git
+    cd Blog_API
+    ```
+
+2.  **Configure Database**
+    Update the `appsettings.json` file in the `API` folder with your connection string and JWT settings.
+    ```json
+    "ConnectionStrings": {
+      "BlogAuthConnection": "Server=YOUR_SERVER;Database=BlogDb;Trusted_Connection=True;TrustServerCertificate=True"
+    },
+    "Jwt": {
+      "Key": "YOUR_SUPER_SECRET_KEY_MUST_BE_LONG_ENOUGH",
+      "Issuer": "https://localhost:7171",
+      "Audience": "https://localhost:7171"
+    }
+    ```
+
+3.  **Apply Migrations**
+    Create the database and seed initial data (Roles & Admin users).
+    ```bash
+    cd API
+    dotnet ef database update
+    ```
+
+4.  **Run the Application**
+    ```bash
+    dotnet run
+    ```
 
 ---
 
 ## 📦 Features
 
-<!-- FIXME: Authentication & Authorization are not features.
-Features are what you provide with your software. You could have created a section for this.
-Where you can also detail the section "🔒 Role Policies" -->
+This API provides a complete backend solution for blog applications:
 
-### 🔐 Authentication & Authorization
-
-- Register with roles
-- Login and receive JWT
-- Secure endpoints with role-based access (`[Authorize(Roles = "...")]`)
-- Identity password configuration customized for simplicity
-
-### 📰 Blog Management
-
-- **Create** a blog post with optional image upload
-- **Get** all posts with:
-  - Filtering (`filterOn`, `filterQuery`)
-  - Sorting (`sortBy`, `isAscending`)
-  - Pagination (`pageNumber`, `pageSize`)
-- **Update/Delete** only your own posts
-- Upload image to a blog post separately
+* **Content Management:** Create, read, update, and delete blog posts.
+* **Media:** Support for uploading cover images for blog posts.
+* **Engagement:** Full commenting system for users to interact with posts.
+* **Advanced Search:**
+    * **Filtering:** Filter posts by title or content.
+    * **Sorting:** Sort by title, date, etc. (Ascending/Descending).
+    * **Pagination:** Efficiently handle large datasets.
 
 ---
 
@@ -66,6 +93,13 @@ Where you can also detail the section "🔒 Role Policies" -->
 | `/api/blogposts/{id}`                  | DELETE | ✅ (Owner/Admin) | Delete a post                |
 | `/api/blogposts/{id}/upload-image`     | POST   | ✅ (Owner)   | Upload or replace post image     |
 
+## 📖 API Documentation
+
+The API is fully documented using **Swagger/OpenAPI**.
+
+Once the application is running, navigate to:
+`https://localhost:7171/swagger`
+
 ---
 
 ### 🔒 Role Policies
@@ -75,3 +109,8 @@ Where you can also detail the section "🔒 Role Policies" -->
 | Reader  | Can view posts only                         |
 | Writer  | Can create, edit, and delete **own** posts  |
 | Admin   | Full access: manage all posts and users     |
+
+### Authentication Flow
+1.  User registers (`/api/auth/register`) and receives a role.
+2.  User logs in (`/api/auth/login`) and receives a **JWT Token**.
+3.  The Token must be included in the `Authorization` header (`Bearer <token>`) for protected requests.
