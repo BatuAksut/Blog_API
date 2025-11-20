@@ -25,17 +25,15 @@ namespace DataAccess.Concrete
         Content = comment.Content,
         ApplicationUserId = comment.ApplicationUserId,
         // FIXME: "CreatedAt" should be automatically set.
-        CreatedAt = comment.CreatedAt
+        // fixed 
+        CreatedAt = DateTime.UtcNow
       };
 
       await context.Comments.AddAsync(commentToAdd);
       await context.SaveChangesAsync();
 
-      // FIXME: warning
-      return await context.Comments
-          .Include(c => c.ApplicationUser)
-          .Include(c => c.BlogPost)
-          .FirstOrDefaultAsync(c => c.Id == commentToAdd.Id);
+            // FIXME: warning
+            return commentToAdd;
     }
 
     public async Task<Comment?> DeleteAsync(Guid id)
@@ -75,43 +73,58 @@ int pageSize = 20)
         }
       }
 
-      // Sorting
-      if (!string.IsNullOrWhiteSpace(sortBy))
-      {
-        comments = sortBy.ToLower() switch
-        {
-          "content" => isAscending ? comments.OrderBy(x => x.Content) : comments.OrderByDescending(x => x.Content),
-          _ => comments
-        };
-      }
+            // Sorting
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                if (sortBy.Equals("content", StringComparison.OrdinalIgnoreCase))
+                {
+                    comments = isAscending ? comments.OrderBy(x => x.Content) : comments.OrderByDescending(x => x.Content);
+                }
+                else if (sortBy.Equals("date", StringComparison.OrdinalIgnoreCase) || sortBy.Equals("createdat", StringComparison.OrdinalIgnoreCase))
+                {
+                    comments = isAscending ? comments.OrderBy(x => x.CreatedAt) : comments.OrderByDescending(x => x.CreatedAt);
+                }
+            }
+            else
+            {
+                // New feature: Default sorting
+                comments = comments.OrderByDescending(x => x.CreatedAt);
+            }
 
-      // Pagination
-      var skipResults = (pageNumber - 1) * pageSize;
+            // Pagination
+            var skipResults = (pageNumber - 1) * pageSize;
       return await comments.Skip(skipResults).Take(pageSize).ToListAsync();
     }
 
     public async Task<Comment?> GetByIdAsync(Guid id)
     {
-      // [Q]: Why you're always including User & BlogPost information?
-      // from a performance perspective is not ideal. We can save this discussion for the future BTW.
-      return await context.Comments.Include(x => x.ApplicationUser).Include(x => x.BlogPost).FirstOrDefaultAsync(x => x.Id == id);
+            // [Q]: Why you're always including User & BlogPost information?
+            // from a performance perspective is not ideal. We can save this discussion for the future BTW.
+            // [A]: Because usually when we get a comment, we want to see who made the comment and on which blog post on front end.
+            return await context.Comments.Include(x => x.ApplicationUser).Include(x => x.BlogPost).FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Comment?> UpdateAsync(Guid id, Comment comment)
     {
       // [Q]: do you need to "Include" the other two entities?
-      var commentToUpdate = await context.Comments.Include(x => x.ApplicationUser).Include(x => x.BlogPost).FirstOrDefaultAsync(x => x.Id == id);
+      // fixed
+      var commentToUpdate = await context.Comments.FirstOrDefaultAsync(x => x.Id == id);
 
       if (commentToUpdate == null) return null;
+
       var userExists = await context.Users.AnyAsync(x => x.Id == comment.ApplicationUserId);
       var blogExists = await context.BlogPosts.AnyAsync(x => x.Id == comment.BlogPostId);
 
       // FIXME: make the single check to be detailed in the error message.
-      if (!userExists || !blogExists)
+      if (!userExists)
             {
-                throw new Exception("User or BlogPost does not exist.");
+                throw new Exception("User does not exist.");
             }
-        
+      if (!blogExists)
+                {
+                throw new Exception("Blog post does not exist.");
+            }
+
 
       commentToUpdate.Content = comment.Content;
       commentToUpdate.BlogPostId = comment.BlogPostId;

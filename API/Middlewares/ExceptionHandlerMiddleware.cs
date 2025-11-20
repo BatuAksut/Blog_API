@@ -2,57 +2,72 @@
 
 namespace API.Middlewares
 {
-  public class ExceptionHandlerMiddleware
-  {
-    private readonly ILogger logger;
-    private readonly RequestDelegate next;
-
-    public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, RequestDelegate next)
+    public class ExceptionHandlerMiddleware
     {
-      this.logger = logger;
-      this.next = next;
-    }
+        private readonly ILogger<ExceptionHandlerMiddleware> logger; // Burayı düzelttim, ILogger generic olmalı
+        private readonly RequestDelegate next;
 
-
-    public async Task InvokeAsync(HttpContext httpContext)
-    {
-      try
-      {
-        await next(httpContext);
-      }
-      catch (Exception ex)
-      {
-        // FIXME: why are we setting the generic 500 error on everything?
-        // I tried to register a user with wrong fields, which was clearly a 400 BadRequest but I got 500. This is the CURL:
-
-        // curl -X 'POST' \
-        //   'http://localhost:5016/api/Auth/Register' \
-        //   -H 'accept: */
-        //         *' \
-        //   -H 'Content - Type: application / json' \
-        //   -d '{
-        //           "username": "user@example.com",
-        //   "password": "string",
-        //   "roles": [
-        //     "string"
-        //   ],
-        //   "firstname": "string",
-        //   "lastname": "string"
-        // }'
-        var errorId = Guid.NewGuid();
-        logger.LogError(ex, "ErrorId: {ErrorId} - {Message}", errorId, ex.Message);
-
-        httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-        httpContext.Response.ContentType = "application/json";
-
-        var error = new
+        public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, RequestDelegate next)
         {
-          Id = errorId,
-          ErrorMessage = "Something went wrong"
-        };
-        await httpContext.Response.WriteAsJsonAsync(error);
-      }
+            this.logger = logger;
+            this.next = next;
+        }
 
+        public async Task InvokeAsync(HttpContext httpContext)
+        {
+            try
+            {
+                await next(httpContext);
+            }
+            catch (Exception ex)
+            {
+                var errorId = Guid.NewGuid();
+
+                logger.LogError(ex, "ErrorId: {ErrorId} - {Message}", errorId, ex.Message);
+
+                httpContext.Response.ContentType = "application/json";
+
+                // Default
+                var statusCode = (int)HttpStatusCode.InternalServerError;
+                var message = "Something went wrong.";
+
+                switch (ex)
+                {
+                    case KeyNotFoundException:
+                        statusCode = (int)HttpStatusCode.NotFound;
+                        message = "The resource was not found.";
+                        break;
+
+                    case ArgumentException:
+                    case InvalidOperationException:
+                    case BadHttpRequestException:
+                        statusCode = (int)HttpStatusCode.BadRequest;
+                        message = ex.Message; 
+                        break;
+
+
+                    case UnauthorizedAccessException:
+                        statusCode = (int)HttpStatusCode.Unauthorized;
+                        message = "You are not authorized.";
+                        break;
+
+
+                    default:
+                        statusCode = (int)HttpStatusCode.InternalServerError;
+                        message = "Something went wrong, please contact support.";
+                        break;
+                }
+
+                httpContext.Response.StatusCode = statusCode;
+
+                var error = new
+                {
+                    Id = errorId,
+                    ErrorMessage = message
+                };
+
+                await httpContext.Response.WriteAsJsonAsync(error);
+            }
+        }
     }
-  }
 }
