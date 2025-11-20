@@ -108,7 +108,10 @@ int pageSize = 20)
 
       // FIXME: make the single check to be detailed in the error message.
       if (!userExists || !blogExists)
-        throw new Exception("User or BlogPost does not exist.");
+            {
+                throw new Exception("User or BlogPost does not exist.");
+            }
+        
 
       commentToUpdate.Content = comment.Content;
       commentToUpdate.BlogPostId = comment.BlogPostId;

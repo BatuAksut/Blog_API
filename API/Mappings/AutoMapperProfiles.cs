@@ -23,7 +23,7 @@ namespace API.Mappings
             CreateMap<CreateBlogPostDto, BlogPost>().ReverseMap();
             CreateMap<UpdateBlogPostDto, BlogPost>().ReverseMap();
 
-
+            CreateMap<RegisterDto, ApplicationUser>();
 
         }
 

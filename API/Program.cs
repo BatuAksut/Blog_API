@@ -20,6 +20,8 @@ var logger = new LoggerConfiguration()
     .CreateLogger();
 
 
+
+
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowLocalhost5173",
@@ -48,8 +50,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
        ValidateIssuerSigningKey = true,
        ValidIssuer = builder.Configuration["Jwt:Issuer"],
        ValidAudience = builder.Configuration["Jwt:Audience"],
-       // FIXME: fix this warning, in general all of the other warnings must be treated as errors.
-       IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+       IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
      }
     );
 
@@ -155,6 +156,13 @@ builder.Services.AddIdentityCore<ApplicationUser>()
 
 
 var app = builder.Build();
+
+
+var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+if (!Directory.Exists(uploadPath))
+{
+    Directory.CreateDirectory(uploadPath);
+}
 
 
 if (app.Environment.IsDevelopment())

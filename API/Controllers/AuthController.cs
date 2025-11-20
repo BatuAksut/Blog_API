@@ -1,4 +1,6 @@
-﻿using DataAccess.Abstract;
+﻿using API.CustomActionFilters;
+using AutoMapper;
+using DataAccess.Abstract;
 using Entities;
 using Entities.DTO;
 using Microsoft.AspNetCore.Http;
@@ -7,36 +9,39 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-  // FIXME: the name of the endpoint address must be lowercase.
-  // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
+    // FIXME: the name of the endpoint address must be lowercase.
+    // fixed below
+    // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
   [Route("api/[controller]")]
   [ApiController]
   public class AuthController : ControllerBase
   {
     private readonly UserManager<ApplicationUser> userManager;
     private readonly ITokenRepository tokenRepository;
+        private readonly IMapper mapper;
 
-    public AuthController(UserManager<ApplicationUser> userManager, ITokenRepository tokenRepository)
+        public AuthController(UserManager<ApplicationUser> userManager, ITokenRepository tokenRepository, IMapper mapper)
+        {
+            this.userManager = userManager;
+            this.tokenRepository = tokenRepository;
+            this.mapper = mapper;
+        }
+
+
+        [HttpPost]
+    [ValidateModel]
+    [Route("register")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
-      this.userManager = userManager;
-      this.tokenRepository = tokenRepository;
-    }
+     
+      var applicationUser = mapper.Map<ApplicationUser>(registerDto);
+            //ensure username and email are the same
+            applicationUser.UserName = registerDto.Username;
+            applicationUser.Email = registerDto.Username;
 
-
-
-    [HttpPost]
-    [Route("Register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
-    {
-      // FIXME: some validation logic? together with mapping logic.
-      var applicationUser = new ApplicationUser()
-      {
-        UserName = registerDto.Username,
-        Email = registerDto.Username,
-        Firstname = registerDto.Firstname,
-        Lastname = registerDto.Lastname
-      };
-      var identityResult = await userManager.CreateAsync(applicationUser, registerDto.Password);
+            var identityResult = await userManager.CreateAsync(applicationUser, registerDto.Password);
       if (!identityResult.Succeeded)
       {
 
@@ -54,36 +59,36 @@ namespace API.Controllers
         }
       }
 
-      // FIXME: this is a POST, it creates a record based on an entity. It must return 201 - Created together with the URI of the resource.
-      return Ok("User registered successfully");
-    }
-
-
-
-    [HttpPost]
-    [Route("Login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
-    {
-      var applicationUser = await userManager.FindByEmailAsync(loginDto.Username);
-      if (applicationUser != null && await userManager.CheckPasswordAsync(applicationUser, loginDto.Password))
-      {
-
-        var roles = await userManager.GetRolesAsync(applicationUser);
-        // [Q]: we are not logging users without any roles? If this is the case, we're returning "Invalid username or password" which is misleading.
-        if (roles != null && roles.Count > 0)
-        {
-          var jwtToken = tokenRepository.CreateJWTToken(applicationUser, roles.ToList());
-          var response = new LoginResponseDto()
-          {
-            JwtToken = jwtToken
-          };
-          return Ok(response);
+            // FIXME: this is a POST, it creates a record based on an entity. It must return 201 - Created together with the URI of the resource.
+            //fixed below
+            return StatusCode(StatusCodes.Status201Created, new { message = "User registered successfully" });
         }
 
 
+        [HttpPost("login")]
+        [ValidateModel]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginResponseDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        {
+            var applicationUser = await userManager.FindByEmailAsync(loginDto.Username);
 
-      }
-      return BadRequest("Invalid username or password");
+            if (applicationUser != null && await userManager.CheckPasswordAsync(applicationUser, loginDto.Password))
+            {
+                var roles = await userManager.GetRolesAsync(applicationUser);
+
+
+                var jwtToken = tokenRepository.CreateJWTToken(applicationUser, roles.ToList());
+
+                var response = new LoginResponseDto()
+                {
+                    JwtToken = jwtToken
+                };
+
+                return Ok(response);
+            }
+
+            return BadRequest("Invalid username or password");
+        }
     }
-  }
 }

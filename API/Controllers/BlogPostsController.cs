@@ -109,7 +109,7 @@ namespace API.Controllers
 
       if (dto.Image != null && dto.Image.Length > 0)
       {
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
           
 
         var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
@@ -159,7 +159,7 @@ namespace API.Controllers
 
       var userId = User.GetUserId();
 
-      if (existingBlogPost.ApplicationUserId != userId)
+      if (existingBlogPost.ApplicationUserId != userId && !User.IsInRole("Admin"))
                 // FIXME: you can be more explicit and say "action not allowed. You can add only your blog posts."
                 // fixed below
       return StatusCode(StatusCodes.Status403Forbidden, "You are not allowed to update this post. You can only edit your own posts.");
