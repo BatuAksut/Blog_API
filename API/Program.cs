@@ -11,6 +11,19 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Microsoft.OpenApi.Models;
 
+// FIXME: the README.md file is now written with valid Markdown syntax & rules. Please download a formatter/linter in your IDE.
+// FIXME: the instructions to run the application are wrong (or they are not working on my machine).
+
+// What I get (located in /API folder):
+// > dotnet ef database update
+/*
+Could not execute because the specified command or file was not found.
+Possible reasons for this include:
+  * You misspelled a built-in dotnet command.
+  * You intended to execute a .NET program, but dotnet-ef does not exist.
+  * You intended to run a global tool, but a dotnet-prefixed executable with this name could not be found on the PATH.
+*/
+
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration()
@@ -161,7 +174,7 @@ var app = builder.Build();
 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
 if (!Directory.Exists(uploadPath))
 {
-    Directory.CreateDirectory(uploadPath);
+  Directory.CreateDirectory(uploadPath);
 }
 
 

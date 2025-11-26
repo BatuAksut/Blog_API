@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
+// TODO: warnings to address
 namespace Entities
 {
   public class BlogPost : BaseEntity<Guid>
@@ -11,9 +11,7 @@ namespace Entities
 
     public List<Comment> Comments { get; set; } = new List<Comment>();
 
-        // TODO: some URL validation? I know there's something built-in already provided.
-        //fixed below
-        [Url]
+    [Url]
     public string? ImageUrl { get; set; }
 
   }

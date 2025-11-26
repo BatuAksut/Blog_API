@@ -45,6 +45,7 @@ namespace DataAccess.Concrete
     }
 
     // NICETOHAVE: evaluate if you can use something like the Sieve model to not do everything by hand.
+    // TODO: this has not been addressed.
     public async Task<List<BlogPost>> GetAllAsync(
 string? filterOn = null,
 string? filterQuery = null,
@@ -102,13 +103,13 @@ int pageSize = 20)
     public async Task<BlogPost?> UpdateAsync(Guid id, BlogPost blogPost)
     {
       var blogPostToUpdate = await context.BlogPosts.FirstOrDefaultAsync(x => x.Id == id);
-            if (blogPostToUpdate == null)
-            {
-                return null;
-            }
+      if (blogPostToUpdate == null)
+      {
+        return null;
+      }
 
-     
-     
+
+
 
       blogPostToUpdate.Title = blogPost.Title;
       blogPostToUpdate.Content = blogPost.Content;
