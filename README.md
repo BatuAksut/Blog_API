@@ -10,11 +10,9 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 - ⚡ Filtering, Sorting, and Pagination
 - 🛡️ Secure API Endpoints with ASP.NET Identity
 
-<!-- TODO: instructions on how to run the software? How to test, build, etc. -->
-
 ## 🚀 Tech Stack
 
-- **ASP.NET Core Web API**
+- **ASP.NET Core Web API 8.0**
 - **Entity Framework Core**
 - **AutoMapper**
 - **SQL Server**
@@ -23,7 +21,11 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 - **Serilog (Logging)**
 - **In-Memory Caching**
 - **Swagger (API documentation)**
+
 ---
+
+## ⚙️ Getting Started
+
 ### Prerequisites
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (LocalDB or Docker)
@@ -33,11 +35,17 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/BatuAksut/Blog_API.git
+    git clone [https://github.com/BatuAksut/Blog_API.git](https://github.com/BatuAksut/Blog_API.git)
     cd Blog_API
     ```
 
-2.  **Configure Database**
+2.  **Install EF Core Tools** (Required to run database updates)
+    If you haven't installed it yet, run this command globally:
+    ```bash
+    dotnet tool install --global dotnet-ef
+    ```
+
+3.  **Configure Database**
     Update the `appsettings.json` file in the `API` folder with your connection string and JWT settings.
     ```json
     "ConnectionStrings": {
@@ -50,67 +58,56 @@ This is a RESTful API built with **ASP.NET Core** that supports:
     }
     ```
 
-3.  **Apply Migrations**
+4.  **Apply Migrations**
     Create the database and seed initial data (Roles & Admin users).
     ```bash
     cd API
     dotnet ef database update
     ```
 
-4.  **Run the Application**
+5.  **Run the Application**
     ```bash
     dotnet run
     ```
 
 ---
 
-## 📦 Features
+## 📦 Features & Endpoints
 
-This API provides a complete backend solution for blog applications:
+This API provides a complete backend solution for blog applications.
 
-* **Content Management:** Create, read, update, and delete blog posts.
-* **Media:** Support for uploading cover images for blog posts.
-* **Engagement:** Full commenting system for users to interact with posts.
-* **Advanced Search:**
-    * **Filtering:** Filter posts by title or content.
-    * **Sorting:** Sort by title, date, etc. (Ascending/Descending).
-    * **Pagination:** Efficiently handle large datasets.
+### 📖 API Documentation (Swagger)
+
+The API is fully documented using **Swagger/OpenAPI**.
+Once the application is running, navigate to:
+
+**[https://localhost:7171/swagger](https://localhost:7171/swagger)**
 
 ---
 
 ### 🛠 Sample Endpoints
 
-<!-- FIXME: providing the URL of the Swagger could have been better. -->
-
-| Endpoint                               | Method | Auth         | Description                      |
-|----------------------------------------|--------|--------------|----------------------------------|
-| `/api/auth/register`                   | POST   | ❌           | Register a new user              |
-| `/api/auth/login`                      | POST   | ❌           | Login and receive JWT token      |
-| `/api/blogposts`                       | GET    | ✅           | List all posts                   |
-| `/api/blogposts/{id}`                  | GET    | ✅           | Get a single post by ID          |
-| `/api/blogposts/with-image`           | POST   | ✅ (Writer/Admin) | Create a post with an image   |
-| `/api/blogposts/{id}`                  | PUT    | ✅ (Owner)   | Update own post                  |
-| `/api/blogposts/{id}`                  | DELETE | ✅ (Owner/Admin) | Delete a post                |
-| `/api/blogposts/{id}/upload-image`     | POST   | ✅ (Owner)   | Upload or replace post image     |
-
-## 📖 API Documentation
-
-The API is fully documented using **Swagger/OpenAPI**.
-
-Once the application is running, navigate to:
-`https://localhost:7171/swagger`
-
----
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/auth/register` | POST | ❌ | Register a new user |
+| `/api/auth/login` | POST | ❌ | Login and receive JWT token |
+| `/api/blogposts` | GET | ✅ | List all posts |
+| `/api/blogposts/{id}` | GET | ✅ | Get a single post by ID |
+| `/api/blogposts/with-image`| POST | ✅ (Writer/Admin) | Create a post with an image |
+| `/api/blogposts/{id}` | PUT | ✅ (Owner) | Update own post |
+| `/api/blogposts/{id}` | DELETE | ✅ (Owner/Admin) | Delete a post |
+| `/api/blogposts/{id}/upload-image` | POST | ✅ (Owner) | Upload or replace post image |
+| `/api/comments/byuser/{userId}` | GET | ✅ | Get comments by a specific user |
 
 ### 🔒 Role Policies
 
-| Role    | Permissions                                 |
-|---------|---------------------------------------------|
-| Reader  | Can view posts only                         |
-| Writer  | Can create, edit, and delete **own** posts  |
-| Admin   | Full access: manage all posts and users     |
+| Role | Permissions |
+|------|-------------|
+| **Reader** | Can view posts only |
+| **Writer** | Can create, edit, and delete **own** posts |
+| **Admin** | Full access: manage all posts and users |
 
 ### Authentication Flow
-1.  User registers (`/api/auth/register`) and receives a role.
-2.  User logs in (`/api/auth/login`) and receives a **JWT Token**.
-3.  The Token must be included in the `Authorization` header (`Bearer <token>`) for protected requests.
+1. User registers (`/api/auth/register`) and receives a role.
+2. User logs in (`/api/auth/login`) and receives a **JWT Token**.
+3. The Token must be included in the `Authorization` header (`Bearer <token>`) for protected requests.
