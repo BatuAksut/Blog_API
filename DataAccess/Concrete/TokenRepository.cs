@@ -24,13 +24,13 @@ namespace DataAccess.Concrete
     public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
       // FIXME: warnings & expressions that can be simplified.
-      // fixed warnings but could not simplify expressions
+      // fixed warnings but could not simplify expressions => DONE with C# VSCode extension.
       var claims = new List<Claim>
     {
-        new Claim(ClaimTypes.Email, user.Email!),
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
-        new Claim("firstname", user.Firstname ?? string.Empty),
-        new Claim("lastname", user.Lastname ?? string.Empty)
+        new(ClaimTypes.Email, user.Email!),
+        new(ClaimTypes.NameIdentifier, user.Id.ToString()) ,
+        new("firstname", user.Firstname ?? string.Empty),
+        new("lastname", user.Lastname ?? string.Empty)
     };
       foreach (var role in roles)
       {
