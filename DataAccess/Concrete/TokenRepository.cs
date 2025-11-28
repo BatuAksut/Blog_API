@@ -32,12 +32,9 @@ namespace DataAccess.Concrete
         new("firstname", user.Firstname ?? string.Empty),
         new("lastname", user.Lastname ?? string.Empty)
     };
-      foreach (var role in roles)
-      {
-        claims.Add(new Claim(ClaimTypes.Role, role));
-      }
-
-      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+       //changed
+       claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+       var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
 
       var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
       var token = new JwtSecurityToken(

@@ -23,7 +23,7 @@ Possible reasons for this include:
   * You intended to execute a .NET program, but dotnet-ef does not exist.
   * You intended to run a global tool, but a dotnet-prefixed executable with this name could not be found on the PATH.
 */
-
+// changed readme instructions 
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration()

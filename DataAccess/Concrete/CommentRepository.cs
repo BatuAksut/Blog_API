@@ -100,7 +100,11 @@ int pageSize = 20)
       // from a performance perspective is not ideal. We can save this discussion for the future BTW.
       // [A]: Because usually when we get a comment, we want to see who made the comment and on which blog post on front end.
       // [Q]: likely if you're fetching a comment by ID, it means you already fetched the BlogPost (and since the only the owner can fetch his own blog posts you also have the user information).
-      return await context.Comments.Include(x => x.ApplicationUser).Include(x => x.BlogPost).FirstOrDefaultAsync(x => x.Id == id);
+      // Deleted
+       return await context.Comments
+                .Include(x => x.ApplicationUser)
+                //.Include(x => x.BlogPost)
+                .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Comment?> UpdateAsync(Guid id, Comment comment)
@@ -140,5 +144,14 @@ int pageSize = 20)
           .ToListAsync();
     }
 
-  }
+        public async Task<List<Comment>> GetByUserIdAsync(Guid userId)
+        {
+         
+            return await context.Comments
+                .Include(x => x.BlogPost)
+                .Where(x => x.ApplicationUserId == userId)
+                .OrderByDescending(x => x.CreatedAt) 
+                .ToListAsync();
+        }
+    }
 }

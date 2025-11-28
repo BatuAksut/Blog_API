@@ -10,10 +10,10 @@ namespace Entities.DTO
     public class UpdateBlogPostDto
     {
         [Required]
-        public string Title { get; set; }
+        public string Title { get; set; } = null!;
 
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
     }
 

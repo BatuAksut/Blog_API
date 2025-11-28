@@ -12,10 +12,10 @@ namespace Entities
   public class ApplicationUser : IdentityUser<Guid>
   {
 
-    public string Firstname { get; set; }
-    public string Lastname { get; set; }
+    public string Firstname { get; set; } = string.Empty;
+    public string Lastname { get; set; } = string.Empty;
 
-    public List<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
+        public List<BlogPost> BlogPosts { get; set; } = new List<BlogPost>();
     public List<Comment> Comments { get; set; } = new List<Comment>();
   }
 }

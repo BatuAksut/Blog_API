@@ -16,5 +16,7 @@ namespace DataAccess.Abstract
         Task<Comment?> DeleteAsync(Guid id);
         Task<List<Comment>> GetByBlogPostIdAsync(Guid blogPostId);
 
+        Task<List<Comment>> GetByUserIdAsync(Guid userId);
+
     }
 }

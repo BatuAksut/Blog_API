@@ -32,7 +32,7 @@ namespace DataAccess
                     EmailConfirmed = true,
                     Firstname = "Reader",
                     Lastname = "One",
-                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null, "YourPassword123!")
+                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null!, "YourPassword123!")
                 },
                 new ApplicationUser
                 {
@@ -44,7 +44,7 @@ namespace DataAccess
                     EmailConfirmed = true,
                     Firstname = "Writer",
                     Lastname = "One",
-                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null, "YourPassword123!")
+                    PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(null!, "YourPassword123!")
                 }
             );
 

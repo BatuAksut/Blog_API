@@ -10,7 +10,7 @@ namespace Entities.DTO
     public class UpdateCommentDto
     {
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         [Required]
         public Guid BlogPostId { get; set; }
