@@ -1,6 +1,8 @@
 ﻿using DataAccess.Abstract;
 using Entities;
 using Microsoft.EntityFrameworkCore;
+using Sieve.Models;
+using Sieve.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +13,13 @@ namespace DataAccess.Concrete
 {
   public class BlogPostRepository : IBlogPostRepository
   {
-    private readonly AppDbContext context;
+   private readonly AppDbContext context;
+   private readonly ISieveProcessor sieveProcessor;
 
-    public BlogPostRepository(AppDbContext context)
+    public BlogPostRepository(AppDbContext context, ISieveProcessor sieveProcessor)
     {
       this.context = context;
+      this.sieveProcessor = sieveProcessor;
     }
 
     public async Task<BlogPost> CreateAsync(BlogPost blogPost)
@@ -46,6 +50,7 @@ namespace DataAccess.Concrete
 
     // NICETOHAVE: evaluate if you can use something like the Sieve model to not do everything by hand.
     // TODO: this has not been addressed.
+    // added sieve
     public async Task<List<BlogPost>> GetAllAsync(
 string? filterOn = null,
 string? filterQuery = null,
@@ -54,43 +59,31 @@ bool isAscending = true,
 int pageNumber = 1,
 int pageSize = 20)
     {
-      // Maksimum pageSize sınırı koyduk
+
+    var model = new SieveModel 
+     {
+     Filters = string.IsNullOrWhiteSpace(filterOn) || string.IsNullOrWhiteSpace(filterQuery)
+     ? null 
+     : $"{filterOn}@={filterQuery}",
+     Sorts = sortBy,
+     Page = pageNumber,
+     PageSize = pageSize
+    };
+      
       pageSize = Math.Min(pageSize, 100);
 
       var blogPosts = context.BlogPosts
           .Include(x => x.ApplicationUser)
           .Include(x => x.Comments)
               .ThenInclude(c => c.ApplicationUser)
+          .AsNoTracking()
           .AsQueryable();
+      blogPosts = sieveProcessor.Apply(model, blogPosts);
 
-      // Filtering
-      if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
-      {
-        switch (filterOn.ToLower())
-        {
-          case "title":
-            blogPosts = blogPosts.Where(x => x.Title.Contains(filterQuery));
-            break;
-          case "content":
-            blogPosts = blogPosts.Where(x => x.Content.Contains(filterQuery));
-            break;
+       return await blogPosts.ToListAsync();
         }
-      }
 
-      // Sorting
-      if (!string.IsNullOrWhiteSpace(sortBy))
-      {
-        blogPosts = sortBy.ToLower() switch
-        {
-          "title" => isAscending ? blogPosts.OrderBy(x => x.Title) : blogPosts.OrderByDescending(x => x.Title),
-          _ => blogPosts
-        };
-      }
 
-      // Pagination
-      var skipResults = (pageNumber - 1) * pageSize;
-      return await blogPosts.Skip(skipResults).Take(pageSize).ToListAsync();
-    }
     public async Task<BlogPost?> GetByIdAsync(Guid id)
     {
       return await context.BlogPosts

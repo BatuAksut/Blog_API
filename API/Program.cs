@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Microsoft.OpenApi.Models;
+using Sieve.Services;
 
 // FIXME: the README.md file is now written with valid Markdown syntax & rules. Please download a formatter/linter in your IDE.
 // FIXME: the instructions to run the application are wrong (or they are not working on my machine).
@@ -48,6 +49,12 @@ builder.Services.AddCors(options =>
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
+
+
+builder.Services.AddScoped<ISieveProcessor, SieveProcessor>();
+
+
+
 
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();

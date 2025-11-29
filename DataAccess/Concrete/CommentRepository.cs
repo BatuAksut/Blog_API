@@ -1,6 +1,8 @@
 ﻿using DataAccess.Abstract;
 using Entities;
 using Microsoft.EntityFrameworkCore;
+using Sieve.Models;
+using Sieve.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +14,14 @@ namespace DataAccess.Concrete
   public class CommentRepository : ICommentRepository
   {
     private readonly AppDbContext context;
+    private readonly ISieveProcessor sieveProcessor;
 
-    public CommentRepository(AppDbContext context)
-    {
-      this.context = context;
-    }
-    public async Task<Comment> CreateAsync(Comment comment)
+    public CommentRepository(AppDbContext context, ISieveProcessor sieveProcessor)
+        {
+            this.context = context;
+            this.sieveProcessor = sieveProcessor;
+        }
+        public async Task<Comment> CreateAsync(Comment comment)
     {
       var commentToAdd = new Comment
       {
@@ -44,7 +48,10 @@ namespace DataAccess.Concrete
       return commentToDelete;
     }
 
-    public async Task<List<Comment>> GetAllAsync(
+
+        // --- Endpoint left for admin purposes can be removed later if we dont need. ---
+        // Added sieve to this endpoint and created another useful get endpoint
+        public async Task<List<Comment>> GetAllAsync(
 string? filterOn = null,
 string? filterQuery = null,
 string? sortBy = null,
@@ -58,41 +65,22 @@ int pageSize = 20)
       var comments = context.Comments
           .Include(x => x.ApplicationUser)
           .Include(x => x.BlogPost)
+          .AsNoTracking()
           .AsQueryable();
 
-      // Filtering
-      if (!string.IsNullOrWhiteSpace(filterOn) && !string.IsNullOrWhiteSpace(filterQuery))
-      {
-        switch (filterOn.ToLower())
-        {
-          case "content":
-            comments = comments.Where(x => x.Content.Contains(filterQuery));
-            break;
+            var model = new SieveModel
+            {
+                Filters = string.IsNullOrWhiteSpace(filterOn) || string.IsNullOrWhiteSpace(filterQuery)
+                                ? null
+                                : $"{filterOn}@={filterQuery}", 
+                Sorts = sortBy,
+                Page = pageNumber,
+                PageSize = pageSize
+       };
+            pageSize = Math.Min(pageSize, 100);
+            comments = sieveProcessor.Apply(model, comments);
+            return await comments.ToListAsync();
         }
-      }
-
-      // Sorting
-      if (!string.IsNullOrWhiteSpace(sortBy))
-      {
-        if (sortBy.Equals("content", StringComparison.OrdinalIgnoreCase))
-        {
-          comments = isAscending ? comments.OrderBy(x => x.Content) : comments.OrderByDescending(x => x.Content);
-        }
-        else if (sortBy.Equals("date", StringComparison.OrdinalIgnoreCase) || sortBy.Equals("createdat", StringComparison.OrdinalIgnoreCase))
-        {
-          comments = isAscending ? comments.OrderBy(x => x.CreatedAt) : comments.OrderByDescending(x => x.CreatedAt);
-        }
-      }
-      else
-      {
-        // New feature: Default sorting
-        comments = comments.OrderByDescending(x => x.CreatedAt);
-      }
-
-      // Pagination
-      var skipResults = (pageNumber - 1) * pageSize;
-      return await comments.Skip(skipResults).Take(pageSize).ToListAsync();
-    }
 
     public async Task<Comment?> GetByIdAsync(Guid id)
     {
@@ -144,7 +132,7 @@ int pageSize = 20)
           .ToListAsync();
     }
 
-        public async Task<List<Comment>> GetByUserIdAsync(Guid userId)
+    public async Task<List<Comment>> GetByUserIdAsync(Guid userId)
         {
          
             return await context.Comments
