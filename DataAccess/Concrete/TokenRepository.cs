@@ -23,8 +23,6 @@ namespace DataAccess.Concrete
     }
     public string CreateJWTToken(ApplicationUser user, List<string> roles)
     {
-      // FIXME: warnings & expressions that can be simplified.
-      // fixed warnings but could not simplify expressions => DONE with C# VSCode extension.
       var claims = new List<Claim>
     {
         new(ClaimTypes.Email, user.Email!),
@@ -32,9 +30,9 @@ namespace DataAccess.Concrete
         new("firstname", user.Firstname ?? string.Empty),
         new("lastname", user.Lastname ?? string.Empty)
     };
-       //changed
-       claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-       var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
+
+      claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+      var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
 
       var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
       var token = new JwtSecurityToken(

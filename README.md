@@ -27,26 +27,30 @@ This is a RESTful API built with **ASP.NET Core** that supports:
 ## ⚙️ Getting Started
 
 ### Prerequisites
+
 - [.NET 8 SDK](https://dotnet.microsoft.com/download)
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (LocalDB or Docker)
 - A code editor (Visual Studio 2022 or VS Code)
 
 ### Installation
 
-1.  **Clone the repository**
+1. **Clone the repository**
+
     ```bash
     git clone [https://github.com/BatuAksut/Blog_API.git](https://github.com/BatuAksut/Blog_API.git)
     cd Blog_API
     ```
 
-2.  **Install EF Core Tools** (Required to run database updates)
+2. **Install EF Core Tools** (Required to run database updates)
     If you haven't installed it yet, run this command globally:
+
     ```bash
     dotnet tool install --global dotnet-ef
     ```
 
-3.  **Configure Database**
+3. **Configure Database**
     Update the `appsettings.json` file in the `API` folder with your connection string and JWT settings.
+
     ```json
     "ConnectionStrings": {
       "BlogAuthConnection": "Server=YOUR_SERVER;Database=BlogDb;Trusted_Connection=True;TrustServerCertificate=True"
@@ -58,14 +62,16 @@ This is a RESTful API built with **ASP.NET Core** that supports:
     }
     ```
 
-4.  **Apply Migrations**
+4. **Apply Migrations**
     Create the database and seed initial data (Roles & Admin users).
+
     ```bash
     cd API
     dotnet ef database update
     ```
 
-5.  **Run the Application**
+5. **Run the Application**
+
     ```bash
     dotnet run
     ```
@@ -108,6 +114,7 @@ Once the application is running, navigate to:
 | **Admin** | Full access: manage all posts and users |
 
 ### Authentication Flow
+
 1. User registers (`/api/auth/register`) and receives a role.
 2. User logs in (`/api/auth/login`) and receives a **JWT Token**.
 3. The Token must be included in the `Authorization` header (`Bearer <token>`) for protected requests.

@@ -13,8 +13,8 @@ namespace DataAccess.Concrete
 {
   public class BlogPostRepository : IBlogPostRepository
   {
-   private readonly AppDbContext context;
-   private readonly ISieveProcessor sieveProcessor;
+    private readonly AppDbContext context;
+    private readonly ISieveProcessor sieveProcessor;
 
     public BlogPostRepository(AppDbContext context, ISieveProcessor sieveProcessor)
     {
@@ -49,8 +49,7 @@ namespace DataAccess.Concrete
     }
 
     // NICETOHAVE: evaluate if you can use something like the Sieve model to not do everything by hand.
-    // TODO: this has not been addressed.
-    // added sieve
+    // TODO: I'll test it out as soon as I can safely register and consume the APIs.
     public async Task<List<BlogPost>> GetAllAsync(
 string? filterOn = null,
 string? filterQuery = null,
@@ -60,16 +59,16 @@ int pageNumber = 1,
 int pageSize = 20)
     {
 
-    var model = new SieveModel 
-     {
-     Filters = string.IsNullOrWhiteSpace(filterOn) || string.IsNullOrWhiteSpace(filterQuery)
-     ? null 
-     : $"{filterOn}@={filterQuery}",
-     Sorts = sortBy,
-     Page = pageNumber,
-     PageSize = pageSize
-    };
-      
+      var model = new SieveModel
+      {
+        Filters = string.IsNullOrWhiteSpace(filterOn) || string.IsNullOrWhiteSpace(filterQuery)
+       ? null
+       : $"{filterOn}@={filterQuery}",
+        Sorts = sortBy,
+        Page = pageNumber,
+        PageSize = pageSize
+      };
+
       pageSize = Math.Min(pageSize, 100);
 
       var blogPosts = context.BlogPosts
@@ -80,8 +79,8 @@ int pageSize = 20)
           .AsQueryable();
       blogPosts = sieveProcessor.Apply(model, blogPosts);
 
-       return await blogPosts.ToListAsync();
-        }
+      return await blogPosts.ToListAsync();
+    }
 
 
     public async Task<BlogPost?> GetByIdAsync(Guid id)

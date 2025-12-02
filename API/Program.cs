@@ -12,7 +12,7 @@ using Serilog;
 using Microsoft.OpenApi.Models;
 using Sieve.Services;
 
-// FIXME: the README.md file is now written with valid Markdown syntax & rules. Please download a formatter/linter in your IDE.
+// FIXME: the README.md file is now written with valid Markdown syntax & rules. Please download a formatter/linter in your IDE. => I fixed it for you. Be sure to not overwrite the changes. Make sure to have a linter in your IDE.
 // FIXME: the instructions to run the application are wrong (or they are not working on my machine).
 
 // What I get (located in /API folder):
@@ -24,7 +24,8 @@ Possible reasons for this include:
   * You intended to execute a .NET program, but dotnet-ef does not exist.
   * You intended to run a global tool, but a dotnet-prefixed executable with this name could not be found on the PATH.
 */
-// changed readme instructions 
+// FIXME: the command `dotnet ef database update` is still not working for me.
+// I managed to run the application. You said it was running on port 7171 but it's running on port 5016 on my system.
 var builder = WebApplication.CreateBuilder(args);
 
 var logger = new LoggerConfiguration()
