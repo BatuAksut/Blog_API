@@ -1,6 +1,6 @@
 ﻿using Sieve.Attributes;
 using System.ComponentModel.DataAnnotations;
-// TODO: warnings to address
+
 namespace Entities
 {
   public class BlogPost : BaseEntity<Guid>
