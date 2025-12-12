@@ -1,120 +1,126 @@
 # 📝 Blog API with JWT Authentication and Role-Based Authorization
 
-This is a RESTful API built with **ASP.NET Core** that supports:
+This is a RESTful API built with **ASP.NET Core** that is fully containerized with **Docker**. It supports:
 
 - 🔐 JWT-based Authentication
 - 👥 Role-based Authorization (`Reader`, `Writer`, `Admin`)
 - 📰 Blog Post Management (Create, Read, Update, Delete)
 - 🖼 Image Uploads for Posts
-- 🧾 Comment System (Optional/Extensible)
+- 🧾 Comment System (Hierarchical Structure)
 - ⚡ Filtering, Sorting, and Pagination
 - 🛡️ Secure API Endpoints with ASP.NET Identity
+- 🐳 **Full Docker Support (API + SQL Server)**
 
 ## 🚀 Tech Stack
 
 - **ASP.NET Core Web API 8.0**
 - **Entity Framework Core**
-- **AutoMapper**
 - **SQL Server**
+- **Docker & Docker Compose**
+- **AutoMapper**
 - **JWT Authentication**
-- **ASP.NET Core Identity**
 - **Serilog (Logging)**
-- **In-Memory Caching**
 - **Swagger (API documentation)**
 
 ---
 
 ## ⚙️ Getting Started
 
-### Prerequisites
+You can run this application easily using Docker (Recommended) or set it up manually.
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) (LocalDB or Docker)
-- A code editor (Visual Studio 2022 or VS Code)
+### 🐳 Option 1: Run with Docker (Recommended)
 
-### Installation
+This method sets up the API and SQL Server automatically. You do **not** need to install the .NET SDK or SQL Server locally.
 
-1. **Clone the repository**
+**Prerequisites:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running.
 
+**Steps:**
+
+1.  **Clone the repository**
     ```bash
-    git clone [https://github.com/BatuAksut/Blog_API.git](https://github.com/BatuAksut/Blog_API.git)
+    git clone https://github.com/BatuAksut/Blog_API.git
     cd Blog_API
     ```
 
-2. **Install EF Core Tools** (Required to run database updates)
-    If you haven't installed it yet, run this command globally:
+2.  **Run with Docker Compose**
+    Open your terminal in the solution folder (where `docker-compose.yml` is located) and run:
+    ```bash
+    docker-compose up --build
+    ```
 
+    > **Note:** This command will:
+    > * Build the API image.
+    > * Start a SQL Server container.
+    > * **Automatically apply database migrations** (create the DB and tables).
+    > * Expose the API on port **7171**.
+
+3.  **Access the Application**
+    Once the containers are running, navigate to:
+     **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
+
+---
+
+### 🛠 Option 2: Manual Installation (Local Dev)
+
+*Follow these steps only if you are NOT using Docker.*
+
+**Prerequisites:**
+- .NET 8 SDK
+- SQL Server (LocalDB or Standalone)
+
+**Steps:**
+
+1.  **Configure Database**
+    Update `appsettings.json` in the `API` folder with your local connection string.
+
+2.  **Apply Migrations**
     ```bash
     dotnet tool install --global dotnet-ef
-    ```
-
-3. **Configure Database**
-    Update the `appsettings.json` file in the `API` folder with your connection string and JWT settings.
-
-    ```json
-    "ConnectionStrings": {
-      "BlogAuthConnection": "Server=YOUR_SERVER;Database=BlogDb;Trusted_Connection=True;TrustServerCertificate=True"
-    },
-    "Jwt": {
-      "Key": "YOUR_SUPER_SECRET_KEY_MUST_BE_LONG_ENOUGH",
-      "Issuer": "https://localhost:7171",
-      "Audience": "https://localhost:7171"
-    }
-    ```
-
-4. **Apply Migrations**
-    Create the database and seed initial data (Roles & Admin users).
-
-    ```bash
     cd API
     dotnet ef database update
     ```
 
-5. **Run the Application**
-
+3.  **Run the Application**
     ```bash
     dotnet run
     ```
+    *The app will run on the ports defined in `launchSettings.json` (usually 5016 or 7171).*
 
 ---
 
 ## 📦 Features & Endpoints
 
-This API provides a complete backend solution for blog applications.
-
-### 📖 API Documentation (Swagger)
+### 📖 API Documentation
 
 The API is fully documented using **Swagger/OpenAPI**.
-Once the application is running, navigate to:
+URL: **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
 
-**[https://localhost:7171/swagger](https://localhost:7171/swagger)**
+### ⚡ Key Endpoints
 
----
-
-### 🛠 Sample Endpoints
-
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/auth/register` | POST | ❌ | Register a new user |
-| `/api/auth/login` | POST | ❌ | Login and receive JWT token |
-| `/api/blogposts` | GET | ✅ | List all posts |
-| `/api/blogposts/{id}` | GET | ✅ | Get a single post by ID |
-| `/api/blogposts/with-image`| POST | ✅ (Writer/Admin) | Create a post with an image |
-| `/api/blogposts/{id}` | PUT | ✅ (Owner) | Update own post |
-| `/api/blogposts/{id}` | DELETE | ✅ (Owner/Admin) | Delete a post |
-| `/api/blogposts/{id}/upload-image` | POST | ✅ (Owner) | Upload or replace post image |
-| `/api/comments/byuser/{userId}` | GET | ✅ | Get comments by a specific user |
+| Resource | Method | Endpoint | Description | Auth Required |
+|----------|--------|----------|-------------|---------------|
+| **Auth** | POST | `/api/auth/register` | Register a new user | ❌ |
+| **Auth** | POST | `/api/auth/login` | Login and receive JWT | ❌ |
+| **Posts** | GET | `/api/blogposts` | List all posts (Filter/Sort) | ✅ |
+| **Posts** | POST | `/api/blogposts/with-image`| Create post with image | ✅ (Writer/Admin) |
+| **Posts** | PUT | `/api/blogposts/{id}` | Update own post | ✅ (Owner) |
+| **Comments**| GET | `/api/blog-posts/{id}/comments` | Get comments for a post | ✅ |
+| **Comments**| POST | `/api/blog-posts/{id}/comments` | Add comment to a post | ✅ |
+| **Comments**| DELETE | `/api/comments/{id}` | Delete own comment | ✅ (Owner/Admin) |
 
 ### 🔒 Role Policies
 
 | Role | Permissions |
 |------|-------------|
-| **Reader** | Can view posts only |
-| **Writer** | Can create, edit, and delete **own** posts |
-| **Admin** | Full access: manage all posts and users |
+| **Reader** | Can view posts and comments. |
+| **Writer** | Can create/edit/delete their **own** posts and comments. |
+| **Admin** | Full access: manage all posts, users, and moderate comments. |
 
 ### Authentication Flow
 
 1. User registers (`/api/auth/register`) and receives a role.
 2. User logs in (`/api/auth/login`) and receives a **JWT Token**.
-3. The Token must be included in the `Authorization` header (`Bearer <token>`) for protected requests.
+3. The Token must be included in the `Authorization` header for protected requests:
+   ```text
+   Authorization: Bearer <your_token_here>
