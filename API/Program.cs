@@ -145,7 +145,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("BlogAuthConnection"),
         sqlOptions =>
         {
-            // Transient hatalarda (Docker açýlýrken SQL hazýr deðilse) 10 saniye arayla 5 kere tekrar dener.
+            
             sqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(10),
@@ -187,14 +187,14 @@ app.MapControllers();
 // -----------------------------------------------------------------------------
 // [FIX] Automatic Database Migration (Fixes "dotnet ef" issues)
 // -----------------------------------------------------------------------------
-// Docker içinde uygulama her baþladýðýnda DB var mý kontrol eder, yoksa oluþturur.
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        // Eðer veritabaný yoksa oluþturur, varsa eksik migrationlarý yapar.
+    
         if (context.Database.GetPendingMigrations().Any())
         {
             context.Database.Migrate();
