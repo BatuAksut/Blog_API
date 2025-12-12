@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-  // FIXME: the name of the endpoint address must be lowercase.
-  // fixed below
-  // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
-  // FIXME: the endpoint address should be "/api/auth/register", not "/api/Auth/register"
-  [Route("api/[controller]")]
-  [ApiController]
+    // FIXME: the name of the endpoint address must be lowercase.
+    // fixed below
+    // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
+    // FIXME: the endpoint address should be "/api/auth/register", not "/api/Auth/register"
+    [Route("api/auth")]
+    [ApiController]
   public class AuthController : ControllerBase
   {
     private readonly UserManager<ApplicationUser> userManager;
@@ -57,19 +57,19 @@ namespace API.Controllers
         }
       }
 
-      // FIXME: this is a POST, it creates a record based on an entity. It must return 201 - Created together with the URI of the resource.
-      // fixed below => is not fixed since you're not returning the URI of the resource. The URI of the user is something like User.ID. As an example: `{"id":"ab3fd309-0aca-4d0f-a727-b687029ce53a"}`
-      // attempt 2
-      // FIXME: I run this endpoint with default values (nothing changed), and I got:
-      /*
-      {
-        "id": "01096659-cce2-4f49-b995-e95c7e77f7aa",
-        "errorMessage": "Something went wrong, please contact support."
-      }
-      */
-      // Can you solve this? If the datastore is not valid, please be sure to not let the user run the application... Plus, the message is not self-explanatory.
-      return StatusCode(StatusCodes.Status201Created, new { id = applicationUser.Id, message = "User registered successfully" });
-    }
+            // FIXME: this is a POST, it creates a record based on an entity. It must return 201 - Created together with the URI of the resource.
+            // fixed below => is not fixed since you're not returning the URI of the resource. The URI of the user is something like User.ID. As an example: `{"id":"ab3fd309-0aca-4d0f-a727-b687029ce53a"}`
+            // attempt 2
+            // FIXME: I run this endpoint with default values (nothing changed), and I got:
+            /*
+            {
+              "id": "01096659-cce2-4f49-b995-e95c7e77f7aa",
+              "errorMessage": "Something went wrong, please contact support."
+            }
+            */
+            // Can you solve this? If the datastore is not valid, please be sure to not let the user run the application... Plus, the message is not self-explanatory.
+            return Created($"/api/auth/user/{applicationUser.Id}", new { id = applicationUser.Id, message = "User registered successfully" });
+        }
 
     [HttpPost("login")]
     [ValidateModel]

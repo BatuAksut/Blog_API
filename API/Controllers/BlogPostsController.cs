@@ -160,8 +160,10 @@ namespace API.Controllers
 
       var blogPost = mapper.Map<BlogPost>(updateBlogPostDto);
       blogPost.ApplicationUserId = existingBlogPost.ApplicationUserId;
+            blogPost.CreatedAt = existingBlogPost.CreatedAt;
+            blogPost.ImageUrl = existingBlogPost.ImageUrl; 
 
-      var updatedBlogPost = await repository.UpdateAsync(id, blogPost);
+            var updatedBlogPost = await repository.UpdateAsync(id, blogPost);
       if (updatedBlogPost == null)
       {
         return NotFound("Blog post could not be found during update.");
@@ -255,7 +257,7 @@ namespace API.Controllers
     private bool IsUserAuthorizedToEdit(BlogPost blogPost)
     {
       var userId = User.GetUserId();
-      var isAdmin = User.IsInRole("Admin");
+
 
       // [Q]: why do you want a user to be "admin" to change his blog posts?
       // TODO: the logic is contrived, it would make more sense something like:
@@ -266,7 +268,8 @@ namespace API.Controllers
       }
       return false
       */
-      if (blogPost.ApplicationUserId != userId && !isAdmin)
+      //changed
+      if (blogPost.ApplicationUserId != userId)
       {
         return false;
       }

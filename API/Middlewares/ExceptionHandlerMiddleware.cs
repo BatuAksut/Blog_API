@@ -4,13 +4,15 @@ namespace API.Middlewares
 {
     public class ExceptionHandlerMiddleware
     {
-        private readonly ILogger<ExceptionHandlerMiddleware> logger; // Burayı düzelttim, ILogger generic olmalı
+        private readonly ILogger<ExceptionHandlerMiddleware> logger;
         private readonly RequestDelegate next;
+        private readonly IHostEnvironment env; 
 
-        public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, RequestDelegate next)
+        public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger, RequestDelegate next, IHostEnvironment env)
         {
             this.logger = logger;
             this.next = next;
+            this.env = env;
         }
 
         public async Task InvokeAsync(HttpContext httpContext)
@@ -23,13 +25,13 @@ namespace API.Middlewares
             {
                 var errorId = Guid.NewGuid();
 
+      
                 logger.LogError(ex, "ErrorId: {ErrorId} - {Message}", errorId, ex.Message);
 
                 httpContext.Response.ContentType = "application/json";
 
-                // Default
                 var statusCode = (int)HttpStatusCode.InternalServerError;
-                var message = "Something went wrong.";
+                var message = "Something went wrong."; 
 
                 switch (ex)
                 {
@@ -39,22 +41,28 @@ namespace API.Middlewares
                         break;
 
                     case ArgumentException:
-                    case InvalidOperationException:
+                    case InvalidOperationException: 
                     case BadHttpRequestException:
                         statusCode = (int)HttpStatusCode.BadRequest;
-                        message = ex.Message; 
+                        message = ex.Message;
                         break;
-
 
                     case UnauthorizedAccessException:
                         statusCode = (int)HttpStatusCode.Unauthorized;
                         message = "You are not authorized.";
                         break;
 
-
                     default:
                         statusCode = (int)HttpStatusCode.InternalServerError;
-                        message = "Something went wrong, please contact support.";
+                      
+                        if (env.IsDevelopment())
+                        {
+                            message = $"{ex.Message} (ErrorId: {errorId})";
+                        }
+                        else
+                        {
+                            message = "Something went wrong, please contact support.";
+                        }
                         break;
                 }
 
