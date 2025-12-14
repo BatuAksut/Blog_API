@@ -46,6 +46,7 @@
         /// <summary>
         /// Creates a new comment.
         /// </summary>
+        /// <param name="blogPostId">The unique ID of the blog post to add the comment to.</param>
         /// <param name="createCommentDto">The JSON body containing data to create the comment.</param>
         /// <returns>The newly created comment.</returns>
         [HttpPost("/api/blog-posts/{blogPostId:guid}/comments")]
