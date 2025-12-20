@@ -159,7 +159,7 @@
             /// <param name="blogPostId">The ID of the blog post to retrieve comments for.</param>
             /// <returns>A list of comments for the specified blog post.</returns>
         [HttpGet("/api/blog-posts/{blogPostId:guid}/comments")]
-        [Authorize(Roles = "Reader,Writer,Admin")]
+        //[Authorize(Roles = "Reader,Writer,Admin")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<CommentDto>))]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCommentsByBlogPost(Guid blogPostId)
