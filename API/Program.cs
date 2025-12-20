@@ -199,6 +199,17 @@ using (var scope = app.Services.CreateScope())
         {
             context.Database.Migrate();
         }
+
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var roles = new[] { "Reader", "Writer", "Admin" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+            }
+        }
     }
     catch (Exception ex)
     {
