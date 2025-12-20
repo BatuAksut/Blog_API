@@ -1,34 +1,34 @@
 version: '3.4'
 
 services:
-  # 1. Veritabanı Servisi (SQL Server)
+  # 1. Database Service (SQL Server)
   blog-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: blog-sql-server
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=StrongPassword123! # Şifre (Aşağıdaki ConnectionString ile aynı olmalı)
+      - SA_PASSWORD=StrongPassword123! 
     ports:
       - "1433:1433"
     volumes:
       - sqlvolume:/var/opt/mssql
 
-  # 2. Senin API Servisin
+  # 2.  API Service
   blog-api:
     image: blog-api
     container_name: blog-api-container
     build:
-      context: .              # <--- BURASI ÇOK ÖNEMLİ (Nokta = Ana Klasör)
+      context: .              
       dockerfile: API/Dockerfile
     ports:
-      - "7171:8080"           # Dış dünya 7171 -> İç dünya 8080
+      - "7171:8080"           # Port
     depends_on:
-      - blog-db               # DB açılmadan API açılmasın
+      - blog-db               # Depends on the database service
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      # İŞTE BURASI APPSETTINGS.JSON'I EZEN KISIM:
-      # Server=blog-db (Servis adı), User=sa, Password=StrongPassword123!
+      # Overriding the connection string to point to the SQL Server container
+      # Server=blog-db, User=sa, Password=StrongPassword123!
       - ConnectionStrings__BlogAuthConnection=Server=blog-db;Database=BlogDb;User Id=sa;Password=StrongPassword123!;TrustServerCertificate=True;
 
 volumes:
