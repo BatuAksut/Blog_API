@@ -11,6 +11,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace API.Controllers
 {
+  // FIXME: the name of the endpoint address must be lowercase.
+  // fixed below
+  // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
   [Route("api/[controller]")]
   [ApiController]
   public class BlogPostsController : ControllerBase
@@ -78,6 +81,8 @@ namespace API.Controllers
       return Ok(blogPostDto);
     }
 
+    // FIXME: if I try to add a blog post with a Reader user, it gives only "403". Be more verbose.
+
     /// <summary>
     /// Creates a new blog post with an image (multipart/form-data).
     /// </summary>
@@ -123,6 +128,8 @@ namespace API.Controllers
 
       var created = await repository.CreateAsync(blogPost);
       var createdDto = mapper.Map<BlogPostDto>(created);
+      // FIXME: you should return only the ID, not the full object.
+      // It's inefficient.
       return CreatedAtAction(nameof(GetBlogPost), new { id = created.Id }, createdDto);
     }
 
@@ -160,10 +167,10 @@ namespace API.Controllers
 
       var blogPost = mapper.Map<BlogPost>(updateBlogPostDto);
       blogPost.ApplicationUserId = existingBlogPost.ApplicationUserId;
-            blogPost.CreatedAt = existingBlogPost.CreatedAt;
-            blogPost.ImageUrl = existingBlogPost.ImageUrl; 
+      blogPost.CreatedAt = existingBlogPost.CreatedAt;
+      blogPost.ImageUrl = existingBlogPost.ImageUrl;
 
-            var updatedBlogPost = await repository.UpdateAsync(id, blogPost);
+      var updatedBlogPost = await repository.UpdateAsync(id, blogPost);
       if (updatedBlogPost == null)
       {
         return NotFound("Blog post could not be found during update.");
@@ -238,6 +245,8 @@ namespace API.Controllers
         return BadRequest("No image file uploaded.");
       }
 
+      // TODO: this is a security vulnerability. You need to check for valid image types, size limits, and path traversal protection.
+
       var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
 
       var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -257,23 +266,12 @@ namespace API.Controllers
     private bool IsUserAuthorizedToEdit(BlogPost blogPost)
     {
       var userId = User.GetUserId();
-
-
-      // [Q]: why do you want a user to be "admin" to change his blog posts?
-      // TODO: the logic is contrived, it would make more sense something like:
-      /*
-      if (blogPost.ApplicationUserId == userId)
-      {
-        return true;
-      }
-      return false
-      */
-      //changed
+      // FIXME: you can simplify even more with:
+      // return blogPost.ApplicationUserId == userId
       if (blogPost.ApplicationUserId != userId)
       {
         return false;
       }
-
       return true;
     }
   }
