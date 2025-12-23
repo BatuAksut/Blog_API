@@ -1,5 +1,9 @@
 # 📝 Blog API with JWT Authentication and Role-Based Authorization
 
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat&logo=docker)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
 This is a RESTful API built with **ASP.NET Core** that is fully containerized with **Docker**. It supports:
 
 - 🔐 JWT-based Authentication
@@ -21,6 +25,18 @@ This is a RESTful API built with **ASP.NET Core** that is fully containerized wi
 - **JWT Authentication**
 - **Serilog (Logging)**
 - **Swagger (API documentation)**
+
+---
+
+## ⚙️ Configuration & Security
+
+To ensure security, sensitive data (like Secrets and Passwords) are **not** stored in `appsettings.json`. They are managed via **Environment Variables**.
+
+| Variable | Description | Location |
+| :--- | :--- | :--- |
+| `Jwt__Key` | Secret key for signing tokens | `docker-compose.yml` (Docker) or `launchSettings.json` (Local) |
+| `ConnectionStrings__BlogAuthConnection` | SQL Connection String | `docker-compose.yml` or `appsettings.json` |
+| `SA_PASSWORD` | SQL Server Admin Password | `docker-compose.yml` |
 
 ---
 
@@ -94,6 +110,8 @@ This method sets up the API and SQL Server automatically. You do **not** need to
 
     *The app will run on the ports defined in `launchSettings.json` (usually 5016 or 7171).*
 
+    *Note: Ensure `Jwt__Key` is set in your environment variables or `launchSettings.json` before running.*
+
 ---
 
 ## 📦 Features & Endpoints
@@ -132,3 +150,4 @@ URL: **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
 
    ```text
    Authorization: Bearer <your_token_here>
+   ```
