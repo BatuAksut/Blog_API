@@ -81,65 +81,68 @@ namespace API.Controllers
       return Ok(blogPostDto);
     }
 
-    // FIXME: if I try to add a blog post with a Reader user, it gives only "403". Be more verbose.
 
-    /// <summary>
-    /// Creates a new blog post with an image (multipart/form-data).
-    /// </summary>
-    /// <param name="dto">The form data containing required fields (Title, Content, Image) to create the blog post.</param>
-    /// <returns>The newly created blog post.</returns>
-    /// <response code="201">Blog post created successfully.</response>
-    /// <response code="400">Model validation failed (e.g., title is missing).</response>
-    /// <response code="401">User is not authenticated.</response>
-    /// <response code="403">User does not have the required role (not Writer or Admin).</response>
-    [HttpPost("with-image")]
-    [ValidateModel]
-    [Authorize(Roles = "Writer,Admin")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(BlogPostDto))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateBlogPost([FromForm] CreateBlogPostDto dto)
-    {
-      var userId = User.GetUserId();
-
-      var blogPost = new BlogPost
-      {
-        Title = dto.Title,
-        Content = dto.Content,
-        ApplicationUserId = userId
-      };
-
-      if (dto.Image != null && dto.Image.Length > 0)
-      {
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-
-        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(dto.Image.FileName);
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        [HttpPost("with-image")]
+        [ValidateModel]
+        [Authorize(Roles = "Writer,Admin")]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status201Created)] 
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> CreateBlogPost([FromForm] CreateBlogPostDto dto)
         {
-          await dto.Image.CopyToAsync(stream);
+            var userId = User.GetUserId();
+
+            var blogPost = new BlogPost
+            {
+                Title = dto.Title,
+                Content = dto.Content,
+                ApplicationUserId = userId
+            };
+
+            // Security check for Image Upload
+            if (dto.Image != null && dto.Image.Length > 0)
+            {
+                // File Extension
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var extension = Path.GetExtension(dto.Image.FileName).ToLower();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest("Invalid image type. Only .jpg, .jpeg, and .png are allowed.");
+                }
+
+                //File Size
+                if (dto.Image.Length > 10 * 1024 * 1024)
+                {
+                    return BadRequest("File size exceeds the limit of 10MB.");
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                var uniqueFileName = Guid.NewGuid().ToString() + extension;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(stream);
+                }
+
+                blogPost.ImageUrl = $"/images/{uniqueFileName}";
+            }
+
+            var created = await repository.CreateAsync(blogPost);
+
+            // fixed
+            return CreatedAtAction(nameof(GetBlogPost), new { id = created.Id }, new { id = created.Id });
         }
 
-        blogPost.ImageUrl = $"/images/{uniqueFileName}";
-      }
-
-      var created = await repository.CreateAsync(blogPost);
-      var createdDto = mapper.Map<BlogPostDto>(created);
-      // FIXME: you should return only the ID, not the full object.
-      // It's inefficient.
-      return CreatedAtAction(nameof(GetBlogPost), new { id = created.Id }, createdDto);
-    }
-
-    /// <summary>
-    /// Updates an existing blog post.
-    /// </summary>
-    /// <param name="id">The ID of the blog post to update.</param>
-    /// <param name="updateBlogPostDto">The JSON body containing the updated data.</param>
-    /// <returns>The updated blog post DTO.</returns>
-    [HttpPut("{id}")]
+        /// <summary>
+        /// Updates an existing blog post.
+        /// </summary>
+        /// <param name="id">The ID of the blog post to update.</param>
+        /// <param name="updateBlogPostDto">The JSON body containing the updated data.</param>
+        /// <returns>The updated blog post DTO.</returns>
+        [HttpPut("{id}")]
     [ValidateModel]
     [Authorize(Roles = "Writer,Admin")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BlogPostDto))]
@@ -209,70 +212,69 @@ namespace API.Controllers
       return NoContent();
     }
 
-    /// <summary>
-    /// Uploads a cover image for an existing blog post (multipart/form-data).
-    /// </summary>
-    /// <param name="id">The ID of the blog post to upload the image for.</param>
-    /// <param name="imageFile">The image file to upload.</param>
-    /// <returns>An object containing the new URL of the uploaded image.</returns>
-    /// <response code="200">Image uploaded successfully and its URL is returned.</response>
-    /// <response code="400">No file was uploaded.</response>
-    /// <response code="401">User is not authenticated.</response>
-    /// <response code="403">User is not the owner of this blog post.</response>
-    /// <response code="404">Blog post with the specified ID was not found.</response>
-    [HttpPost("{id}/upload-image")]
-    [Authorize(Roles = "Writer,Admin")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UploadImage(Guid id, IFormFile imageFile)
-    {
-      var blogPost = await repository.GetByIdAsync(id);
-      if (blogPost == null)
-      {
-        return NotFound("Blog post not found.");
-      }
+        /// <summary>
+        /// Uploads a cover image for an existing blog post (multipart/form-data).
+        /// </summary>
+        /// <param name="id">The ID of the blog post to upload the image for.</param>
+        /// <param name="imageFile">The image file to upload.</param>
+        /// <returns>An object containing the new URL of the uploaded image.</returns>
+        /// <response code="200">Image uploaded successfully and its URL is returned.</response>
+        /// <response code="400">No file was uploaded.</response>
+        /// <response code="401">User is not authenticated.</response>
+        /// <response code="403">User is not the owner of this blog post.</response>
+        /// <response code="404">Blog post with the specified ID was not found.</response>
+        [HttpPost("{id}/upload-image")]
+        [Authorize(Roles = "Writer,Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UploadImage(Guid id, IFormFile imageFile)
+        {
+            var blogPost = await repository.GetByIdAsync(id);
+            if (blogPost == null) return NotFound("Blog post not found.");
 
-      if (!IsUserAuthorizedToEdit(blogPost))
-      {
-        return StatusCode(StatusCodes.Status403Forbidden, "You can only upload images to your own posts.");
-      }
+            if (!IsUserAuthorizedToEdit(blogPost))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, "You can only upload images to your own posts.");
+            }
 
-      if (imageFile == null || imageFile.Length == 0)
-      {
-        return BadRequest("No image file uploaded.");
-      }
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                return BadRequest("No image file uploaded.");
+            }
 
-      // TODO: this is a security vulnerability. You need to check for valid image types, size limits, and path traversal protection.
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(imageFile.FileName).ToLower();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest("Invalid image type. Only .jpg, .jpeg, and .png are allowed.");
+            }
 
-      var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            if (imageFile.Length > 10 * 1024 * 1024)
+            {
+                return BadRequest("File size exceeds the limit of 10MB.");
+            }
 
-      var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-      var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            var uniqueFileName = Guid.NewGuid().ToString() + extension;
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-      using (var stream = new FileStream(filePath, FileMode.Create))
-      {
-        await imageFile.CopyToAsync(stream);
-      }
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
 
-      blogPost.ImageUrl = $"/images/{uniqueFileName}";
-      await repository.UpdateAsync(id, blogPost);
-      return Ok(new { imageUrl = blogPost.ImageUrl });
-    }
+            blogPost.ImageUrl = $"/images/{uniqueFileName}";
+            await repository.UpdateAsync(id, blogPost);
+            return Ok(new { imageUrl = blogPost.ImageUrl });
+        }
 
-    [NonAction]
+        [NonAction]
     private bool IsUserAuthorizedToEdit(BlogPost blogPost)
     {
-      var userId = User.GetUserId();
-      // FIXME: you can simplify even more with:
-      // return blogPost.ApplicationUserId == userId
-      if (blogPost.ApplicationUserId != userId)
-      {
-        return false;
-      }
-      return true;
-    }
+        return blogPost.ApplicationUserId == User.GetUserId();
+   }
   }
 }

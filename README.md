@@ -33,29 +33,32 @@ You can run this application easily using Docker (Recommended) or set it up manu
 This method sets up the API and SQL Server automatically. You do **not** need to install the .NET SDK or SQL Server locally.
 
 **Prerequisites:**
+
 - [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running.
 
 **Steps:**
 
-1.  **Clone the repository**
+1. **Clone the repository**
+
     ```bash
     git clone https://github.com/BatuAksut/Blog_API.git
     cd Blog_API
     ```
 
-2.  **Run with Docker Compose**
+2. **Run with Docker Compose**
     Open your terminal in the solution folder (where `docker-compose.yml` is located) and run:
+
     ```bash
     docker-compose up --build
     ```
 
     > **Note:** This command will:
-    > * Build the API image.
-    > * Start a SQL Server container.
-    > * **Automatically apply database migrations** (create the DB and tables).
-    > * Expose the API on port **7171**.
+    > - Build the API image.
+    > - Start a SQL Server container.
+    > - **Automatically apply database migrations** (create the DB and tables).
+    > - Expose the API on port **7171**.
 
-3.  **Access the Application**
+3. **Access the Application**
     Once the containers are running, navigate to:
      **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
 
@@ -66,25 +69,29 @@ This method sets up the API and SQL Server automatically. You do **not** need to
 *Follow these steps only if you are NOT using Docker.*
 
 **Prerequisites:**
+
 - .NET 8 SDK
 - SQL Server (LocalDB or Standalone)
 
 **Steps:**
 
-1.  **Configure Database**
+1. **Configure Database**
     Update `appsettings.json` in the `API` folder with your local connection string.
 
-2.  **Apply Migrations**
+2. **Apply Migrations**
+
     ```bash
     dotnet tool install --global dotnet-ef
     cd API
     dotnet ef database update
     ```
 
-3.  **Run the Application**
+3. **Run the Application**
+
     ```bash
     dotnet run
     ```
+
     *The app will run on the ports defined in `launchSettings.json` (usually 5016 or 7171).*
 
 ---
@@ -99,20 +106,20 @@ URL: **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
 ### ⚡ Key Endpoints
 
 | Resource | Method | Endpoint | Description | Auth Required |
-|----------|--------|----------|-------------|---------------|
+| ---------- | -------- | ---------- | ------------- | --------------- |
 | **Auth** | POST | `/api/auth/register` | Register a new user | ❌ |
 | **Auth** | POST | `/api/auth/login` | Login and receive JWT | ❌ |
 | **Posts** | GET | `/api/blogposts` | List all posts (Filter/Sort) | ✅ |
-| **Posts** | POST | `/api/blogposts/with-image`| Create post with image | ✅ (Writer/Admin) |
+| **Posts** | POST | `/api/blogposts/with-image` | Create post with image | ✅ (Writer/Admin) |
 | **Posts** | PUT | `/api/blogposts/{id}` | Update own post | ✅ (Owner) |
-| **Comments**| GET | `/api/blog-posts/{id}/comments` | Get comments for a post | ✅ |
-| **Comments**| POST | `/api/blog-posts/{id}/comments` | Add comment to a post | ✅ |
-| **Comments**| DELETE | `/api/comments/{id}` | Delete own comment | ✅ (Owner/Admin) |
+| **Comments** | GET | `/api/blog-posts/{id}/comments` | Get comments for a post | ✅ |
+| **Comments** | POST | `/api/blog-posts/{id}/comments` | Add comment to a post | ✅ |
+| **Comments** | DELETE | `/api/comments/{id}` | Delete own comment | ✅ (Owner/Admin) |
 
 ### 🔒 Role Policies
 
 | Role | Permissions |
-|------|-------------|
+| ------ | ------------- |
 | **Reader** | Can view posts and comments. |
 | **Writer** | Can create/edit/delete their **own** posts and comments. |
 | **Admin** | Full access: manage all posts, users, and moderate comments. |
@@ -122,5 +129,6 @@ URL: **[http://localhost:7171/swagger](http://localhost:7171/swagger)**
 1. User registers (`/api/auth/register`) and receives a role.
 2. User logs in (`/api/auth/login`) and receives a **JWT Token**.
 3. The Token must be included in the `Authorization` header for protected requests:
+
    ```text
    Authorization: Bearer <your_token_here>

@@ -27,9 +27,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      # Overriding the connection string to point to the SQL Server container
-      # Server=blog-db, User=sa, Password=StrongPassword123!
+      # SQL Connection String Override
       - ConnectionStrings__BlogAuthConnection=Server=blog-db;Database=BlogDb;User Id=sa;Password=StrongPassword123!;TrustServerCertificate=True;
+      # [NEW] JWT Key Override via Environment Variable
+      - Jwt__Key=This_Is_A_Very_Secret_And_Long_Docker_Password_Please_Do_Not_Share_123!
 
 volumes:
   sqlvolume:

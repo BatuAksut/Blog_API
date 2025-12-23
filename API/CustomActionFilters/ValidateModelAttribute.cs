@@ -12,11 +12,16 @@ namespace API.CustomActionFilters
     {
       if (!context.ModelState.IsValid)
       {
-        if (context.ModelState.IsValid == false)
-        {
-          context.Result = new BadRequestResult();
+        var errors = context.ModelState.Values
+        .SelectMany(x => x.Errors)
+        .Select(x => x.ErrorMessage)
+        .ToList();
+                context.Result = new BadRequestObjectResult(new
+                {
+                    message = "One or more validation errors occurred.",
+                    errors = errors
+                });
         }
-      }
     }
   }
 }

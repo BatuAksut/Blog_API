@@ -14,7 +14,9 @@ using Sieve.Services;
 
 // FIXME: the README.md still has plenty of errors. Make sure to have a linter or formatter to work with Markdown files.
 // FIXME: the JWT secret key should not be put in plain appsettings.json. Start by moving it to environment variables.
-// TODO: write unit tests.
+// Fixed jwt and jwt key issue.
+// TODO: write unit tests. 
+// Unit tests are still pending.
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,20 +46,44 @@ builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
-// Authentication Setup
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 16)
+{
+    throw new InvalidOperationException("JWT Key is missing or too short. Please set 'Jwt__Key' in environment variables.");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
-     opt.TokenValidationParameters = new TokenValidationParameters
-     {
-       ValidateIssuer = true,
-       ValidateAudience = true,
-       ValidateLifetime = true,
-       ValidateIssuerSigningKey = true,
-       ValidIssuer = builder.Configuration["Jwt:Issuer"],
-       ValidAudience = builder.Configuration["Jwt:Audience"],
-       IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-     }
-    );
+    {
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        opt.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(new { message = "You are not authenticated." });
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(new { message = "You do not have permission to perform this action." });
+            }
+        };
+    });
 
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
