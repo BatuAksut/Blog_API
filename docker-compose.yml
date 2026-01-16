@@ -1,5 +1,3 @@
-version: '3.4'
-
 services:
   # 1. Database Service (SQL Server)
   blog-db:

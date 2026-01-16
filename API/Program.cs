@@ -12,9 +12,6 @@ using Serilog;
 using Microsoft.OpenApi.Models;
 using Sieve.Services;
 
-// FIXME: the README.md still has plenty of errors. Make sure to have a linter or formatter to work with Markdown files.
-// FIXME: the JWT secret key should not be put in plain appsettings.json. Start by moving it to environment variables.
-// Fixed jwt and jwt key issue.
 // TODO: write unit tests. 
 // Unit tests are still pending.
 
@@ -31,6 +28,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
 // CORS Setup
+// FIXME: make origins configurable from environment variables. Use .env files as an example.
+// approach with .env/.env_sample
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowLocalhost5173",
@@ -48,41 +47,42 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 
+// FIXME: this is insecure. Enforce some policies on this key.
 if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 16)
 {
-    throw new InvalidOperationException("JWT Key is missing or too short. Please set 'Jwt__Key' in environment variables.");
+  throw new InvalidOperationException("JWT Key is missing or too short. Please set 'Jwt__Key' in environment variables.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
-        opt.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
-        };
+      opt.TokenValidationParameters = new TokenValidationParameters
+      {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
+      };
 
-        opt.Events = new JwtBearerEvents
+      opt.Events = new JwtBearerEvents
+      {
+        OnChallenge = context =>
         {
-            OnChallenge = context =>
-            {
-                context.HandleResponse();
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-                return context.Response.WriteAsJsonAsync(new { message = "You are not authenticated." });
-            },
-            OnForbidden = context =>
-            {
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                context.Response.ContentType = "application/json";
-                return context.Response.WriteAsJsonAsync(new { message = "You do not have permission to perform this action." });
-            }
-        };
+          context.HandleResponse();
+          context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+          context.Response.ContentType = "application/json";
+          return context.Response.WriteAsJsonAsync(new { message = "You are not authenticated." });
+        },
+        OnForbidden = context =>
+        {
+          context.Response.StatusCode = StatusCodes.Status403Forbidden;
+          context.Response.ContentType = "application/json";
+          return context.Response.WriteAsJsonAsync(new { message = "You do not have permission to perform this action." });
+        }
+      };
     });
 
 // Authorization Policies
@@ -94,6 +94,9 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Identity Options
+// FIXME: this password policy are a bit weak.
+// for production applications, be sure to raise them accordingly.
+// update the swagger with user whose passwords match these requirements
 builder.Services.Configure<IdentityOptions>(options =>
 {
   options.Password.RequireDigit = false;
