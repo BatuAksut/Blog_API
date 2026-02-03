@@ -71,6 +71,10 @@ int pageSize = 20)
 
       pageSize = Math.Min(pageSize, 100);
 
+      // FIXME: this is known as the N+1 problem.
+      // you have plenty of ways to mitigate this:
+      // conditional includes, separate methods, projections of the selected fields, etc.
+      // do a bit of research
       var blogPosts = context.BlogPosts
           .Include(x => x.ApplicationUser)
           .Include(x => x.Comments)
