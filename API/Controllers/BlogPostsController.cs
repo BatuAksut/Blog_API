@@ -11,9 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace API.Controllers
 {
-  // FIXME: the name of the endpoint address must be lowercase.
-  // fixed below
-  // TODO: have a look at this standard guidelines: https://opensource.zalando.com/restful-api-guidelines/#table-of-contents
+ 
   [Route("api/[controller]")]
   [ApiController]
   public class BlogPostsController : ControllerBase

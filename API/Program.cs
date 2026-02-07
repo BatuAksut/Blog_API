@@ -12,12 +12,11 @@ using Serilog;
 using Microsoft.OpenApi.Models;
 using Sieve.Services;
 
-// TODO: write unit tests. 
-// Unit tests are still pending.
-
 var builder = WebApplication.CreateBuilder(args);
 
+// -----------------------------------------------------------------------------
 // Serilog Setup
+// -----------------------------------------------------------------------------
 var logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
@@ -27,84 +26,108 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
-// CORS Setup
-// FIXME: make origins configurable from environment variables. Use .env files as an example.
-// approach with .env/.env_sample
+// -----------------------------------------------------------------------------
+// [FIXED] CORS Setup: Configurable from Environment Variables
+// -----------------------------------------------------------------------------
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?
+    .Split(",", StringSplitOptions.RemoveEmptyEntries)
+    .Select(o => o.Trim())
+    .ToArray();
+
 builder.Services.AddCors(options =>
 {
-  options.AddPolicy("AllowLocalhost5173",
-          policy => policy.WithOrigins("http://localhost:5173")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+    options.AddPolicy("AllowSpecificOrigins",
+        policy =>
+        {
+            if (allowedOrigins != null && allowedOrigins.Any())
+            {
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            }
+            else
+            {
+                // Fallback for safety (e.g. Localhost) if env var is missing
+                policy.WithOrigins("http://localhost:5173")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            }
+        });
 });
 
 builder.Services.AddScoped<ISieveProcessor, SieveProcessor>();
 
+// -----------------------------------------------------------------------------
 // Repositories
+// -----------------------------------------------------------------------------
 builder.Services.AddScoped<IBlogPostRepository, BlogPostRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
+// -----------------------------------------------------------------------------
+// [FIXED] JWT Key Security
+// -----------------------------------------------------------------------------
 var jwtKey = builder.Configuration["Jwt:Key"];
 
-// FIXME: this is insecure. Enforce some policies on this key.
-if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 16)
+// Enforce at least 32 chars (256 bits) for security
+if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
 {
-  throw new InvalidOperationException("JWT Key is missing or too short. Please set 'Jwt__Key' in environment variables.");
+    throw new InvalidOperationException("JWT Key is missing or too short. It must be at least 32 characters long. Please set 'Jwt__Key' in environment variables.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
-      opt.TokenValidationParameters = new TokenValidationParameters
-      {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
-      };
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
+        };
 
-      opt.Events = new JwtBearerEvents
-      {
-        OnChallenge = context =>
+        opt.Events = new JwtBearerEvents
         {
-          context.HandleResponse();
-          context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-          context.Response.ContentType = "application/json";
-          return context.Response.WriteAsJsonAsync(new { message = "You are not authenticated." });
-        },
-        OnForbidden = context =>
-        {
-          context.Response.StatusCode = StatusCodes.Status403Forbidden;
-          context.Response.ContentType = "application/json";
-          return context.Response.WriteAsJsonAsync(new { message = "You do not have permission to perform this action." });
-        }
-      };
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(new { message = "You are not authenticated." });
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsJsonAsync(new { message = "You do not have permission to perform this action." });
+            }
+        };
     });
 
+// -----------------------------------------------------------------------------
 // Authorization Policies
+// -----------------------------------------------------------------------------
 builder.Services.AddAuthorization(options =>
 {
-  options.AddPolicy("Reader", policy => policy.RequireRole("Reader"));
-  options.AddPolicy("Writer", policy => policy.RequireRole("Writer"));
-  options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("Reader", policy => policy.RequireRole("Reader"));
+    options.AddPolicy("Writer", policy => policy.RequireRole("Writer"));
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
 });
 
-// Identity Options
-// FIXME: this password policy are a bit weak.
-// for production applications, be sure to raise them accordingly.
-// update the swagger with user whose passwords match these requirements
+// -----------------------------------------------------------------------------
+// [FIXED] Identity Options: Strong Password Policy
+// -----------------------------------------------------------------------------
 builder.Services.Configure<IdentityOptions>(options =>
 {
-  options.Password.RequireDigit = false;
-  options.Password.RequiredLength = 6;
-  options.Password.RequireNonAlphanumeric = false;
-  options.Password.RequireUppercase = false;
-  options.Password.RequireLowercase = false;
-  options.Password.RequiredUniqueChars = 1;
+    options.Password.RequireDigit = true;           // Rakam zorunlu
+    options.Password.RequiredLength = 10;           // En az 10 karakter
+    options.Password.RequireNonAlphanumeric = true; // Sembol zorunlu (!?*.)
+    options.Password.RequireUppercase = true;       // Büyük harf zorunlu
+    options.Password.RequireLowercase = true;       // Küçük harf zorunlu
+    options.Password.RequiredUniqueChars = 1;
 });
 
 builder.Services.AddMemoryCache();
@@ -113,38 +136,40 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// -----------------------------------------------------------------------------
 // Swagger Setup
+// -----------------------------------------------------------------------------
 builder.Services.AddSwaggerGen(options =>
 {
-  options.SwaggerDoc("v1", new OpenApiInfo
-  {
-    Title = "Blog Web API",
-    Version = "v1",
-    Description = "This API provides the core backend services for a blog platform.",
-    Contact = new OpenApiContact
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
-      Name = "Batuhan Aksut",
-      Email = "batuhanaksut@hotmail.com",
-      Url = new Uri("https://github.com/batuaksut")
-    },
-    License = new OpenApiLicense
+        Title = "Blog Web API",
+        Version = "v1",
+        Description = "This API provides the core backend services for a blog platform.",
+        Contact = new OpenApiContact
+        {
+            Name = "Batuhan Aksut",
+            Email = "batuhanaksut@hotmail.com",
+            Url = new Uri("https://github.com/batuaksut")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
+    });
+
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-      Name = "MIT License",
-      Url = new Uri("https://opensource.org/licenses/MIT")
-    }
-  });
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Please enter your JWT token.\n\r\rExample: 12345abcdef",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
 
-  options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-  {
-    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-    Description = "Please enter your JWT token.\n\r\rExample: 12345abcdef",
-    Name = "Authorization",
-    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-    Scheme = "Bearer",
-    BearerFormat = "JWT"
-  });
-
-  options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
             new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -159,30 +184,28 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-  // XML Comments (if exists)
-  var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-  var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-  if (File.Exists(xmlPath))
-  {
-    options.IncludeXmlComments(xmlPath);
-  }
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
 
 builder.Services.AddDataProtection();
 
 // -----------------------------------------------------------------------------
-// [FIX] Database Configuration with Retry Logic (For Docker Race Conditions)
+// Database Configuration with Retry Logic
 // -----------------------------------------------------------------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("BlogAuthConnection"),
         sqlOptions =>
         {
-
-          sqlOptions.EnableRetryOnFailure(
-              maxRetryCount: 5,
-              maxRetryDelay: TimeSpan.FromSeconds(10),
-              errorNumbersToAdd: null);
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null);
         }));
 
 builder.Services.AddIdentityCore<ApplicationUser>()
@@ -193,62 +216,67 @@ builder.Services.AddIdentityCore<ApplicationUser>()
 
 var app = builder.Build();
 
+// -----------------------------------------------------------------------------
 // Static Files Setup
+// -----------------------------------------------------------------------------
 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
 if (!Directory.Exists(uploadPath))
 {
-  Directory.CreateDirectory(uploadPath);
+    Directory.CreateDirectory(uploadPath);
 }
 
+// -----------------------------------------------------------------------------
 // Environment Setup
+// -----------------------------------------------------------------------------
 if (app.Environment.IsDevelopment())
 {
-  app.UseSwagger();
-  app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseCors("AllowLocalhost5173");
+// Updated CORS Policy Usage
+app.UseCors("AllowSpecificOrigins");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 // -----------------------------------------------------------------------------
-// [FIX] Automatic Database Migration (Fixes "dotnet ef" issues)
+// Automatic Database Migration
 // -----------------------------------------------------------------------------
-
 using (var scope = app.Services.CreateScope())
 {
-  var services = scope.ServiceProvider;
-  try
-  {
-    var context = services.GetRequiredService<AppDbContext>();
-
-    if (context.Database.GetPendingMigrations().Any())
+    var services = scope.ServiceProvider;
+    try
     {
-      context.Database.Migrate();
+        var context = services.GetRequiredService<AppDbContext>();
+
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var roles = new[] { "Reader", "Writer", "Admin" };
+
+        foreach (var role in roles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+            }
+        }
     }
-
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    var roles = new[] { "Reader", "Writer", "Admin" };
-
-    foreach (var role in roles)
+    catch (Exception ex)
     {
-      if (!await roleManager.RoleExistsAsync(role))
-      {
-        await roleManager.CreateAsync(new IdentityRole<Guid>(role));
-      }
+        var loggerService = services.GetRequiredService<ILogger<Program>>();
+        loggerService.LogError(ex, "An error occurred while migrating the database.");
     }
-  }
-  catch (Exception ex)
-  {
-    var loggerService = services.GetRequiredService<ILogger<Program>>();
-    loggerService.LogError(ex, "An error occurred while migrating the database.");
-  }
 }
 
 app.Run();

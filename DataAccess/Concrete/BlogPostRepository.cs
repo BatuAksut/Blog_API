@@ -75,16 +75,26 @@ int pageSize = 20)
       // you have plenty of ways to mitigate this:
       // conditional includes, separate methods, projections of the selected fields, etc.
       // do a bit of research
-      var blogPosts = context.BlogPosts
-          .Include(x => x.ApplicationUser)
-          .Include(x => x.Comments)
-              .ThenInclude(c => c.ApplicationUser)
-          .AsNoTracking()
-          .AsQueryable();
-      blogPosts = sieveProcessor.Apply(model, blogPosts);
 
-      return await blogPosts.ToListAsync();
-    }
+      var collection = context.BlogPosts.AsNoTracking().AsQueryable();
+      collection = sieveProcessor.Apply(model, collection);
+      return await collection.Select(x => new BlogPost
+            {
+                Id = x.Id,
+                Title = x.Title,
+                Content = x.Content,
+                ImageUrl = x.ImageUrl,
+                CreatedAt = x.CreatedAt,
+                ApplicationUserId = x.ApplicationUserId,
+
+                ApplicationUser = new ApplicationUser
+                {
+                    Id = x.ApplicationUser.Id,
+                    UserName = x.ApplicationUser.UserName,
+                    Email = x.ApplicationUser.Email
+                }
+            }).ToListAsync();
+        }
 
 
     public async Task<BlogPost?> GetByIdAsync(Guid id)
@@ -93,6 +103,7 @@ int pageSize = 20)
   .Include(x => x.ApplicationUser)
   .Include(x => x.Comments)
       .ThenInclude(c => c.ApplicationUser)
+      .AsSplitQuery()
   .FirstOrDefaultAsync(x => x.Id == id);
     }
 
